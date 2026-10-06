@@ -1,0 +1,84 @@
+<%
+  const loginError = typeof mensagem_erro === 'string' ? mensagem_erro : '';
+  const loginSuccess = typeof mensagem_sucesso === 'string' ? mensagem_sucesso : '';
+  const loginInfo = typeof mensagem_info === 'string' ? mensagem_info : '';
+  const loginUsername = typeof usuario_digitado === 'string' ? usuario_digitado : '';
+%>
+<div class="login-page" data-login-page>
+  <div class="login-backdrop" aria-hidden="true" data-login-spotlight>
+    <img src="/img/sobre/aeroporto-brasilia-salao.jpg" alt="" width="2752" height="1835" fetchpriority="high">
+  </div>
+  <header class="login-header">
+    <a class="login-wordmark" href="/" aria-label="Madero — página inicial">MADERO</a>
+    <a class="login-back" href="/" aria-label="Voltar ao site">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+      <span>Voltar ao site</span>
+    </a>
+  </header>
+
+  <div class="login-center">
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="login-heading">
+        <h1 id="login-title">Bem-vindo.</h1>
+        <p>Seu acesso à área interna do Madero.</p>
+      </div>
+
+      <nav class="login-access" aria-label="Acesso à conta">
+        <a href="/usuarios/login" aria-current="page">Entrar</a>
+        <a href="/usuarios/novo_usuario">Criar conta
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 17 10-10M7 7h10v10"/></svg>
+        </a>
+      </nav>
+
+      <% if (loginError) { %>
+        <div class="login-message login-message--error" id="login-feedback" role="alert" tabindex="-1" data-login-feedback>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v.01"/></svg>
+          <div><strong>Não foi possível entrar.</strong><p><%= loginError %></p></div>
+        </div>
+      <% } else if (loginSuccess) { %>
+        <div class="login-message login-message--success" id="login-feedback" role="status" tabindex="-1" data-login-feedback>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+          <div><strong>Tudo pronto!</strong><p><%= loginSuccess %></p></div>
+        </div>
+      <% } else if (loginInfo) { %>
+        <div class="login-message login-message--info" id="login-feedback" role="status" tabindex="-1" data-login-feedback>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v.01"/></svg>
+          <p><%= loginInfo %></p>
+        </div>
+      <% } %>
+
+      <form class="login-form" id="login-form" action="/usuarios/login" method="post" tabindex="-1" data-login-form>
+        <div class="login-field">
+          <label for="usuario">Usuário</label>
+          <div class="login-input-wrap">
+            <input id="usuario" name="usuario" type="text" value="<%= loginUsername %>" placeholder="Seu usuário" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="senha">Senha</label>
+          <div class="login-input-wrap">
+            <input id="senha" name="senha" type="password" placeholder="Sua senha" autocomplete="current-password" required>
+            <button class="login-password-toggle" type="button" aria-label="Mostrar senha" aria-controls="senha" aria-pressed="false" data-password-toggle hidden>
+              <svg class="login-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="login-eye__slash" d="m3 3 18 18"/></svg>
+              <span data-password-toggle-label>Mostrar</span>
+            </button>
+          </div>
+          <p class="login-caps-lock" id="login-caps-lock" role="status" data-caps-lock hidden>Caps Lock está ativado.</p>
+        </div>
+        <button class="login-submit" type="submit" data-login-submit>
+          <span data-submit-label>Entrar</span>
+          <span class="login-submit__icon" aria-hidden="true">
+            <svg class="login-submit__arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+            <span class="login-submit__spinner"></span>
+          </span>
+        </button>
+        <span class="login-sr-only" role="status" aria-live="polite" data-login-status></span>
+      </form>
+    </section>
+  </div>
+
+  <footer class="login-footer">
+      <span>© <%= new Date().getFullYear() %> Madero</span>
+      <span>Desenvolvido por <span class="login-studio">MONKCODERS</span></span>
+  </footer>
+</div>

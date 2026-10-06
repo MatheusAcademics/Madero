@@ -1,0 +1,105 @@
+<%
+  const registerError = typeof mensagem_erro === 'string' ? mensagem_erro : '';
+  const registerName = typeof nome_digitado === 'string' ? nome_digitado : '';
+  const registerUsername = typeof usuario_digitado === 'string' ? usuario_digitado : '';
+  const registerEmail = typeof email_digitado === 'string' ? email_digitado : '';
+  const registerPhone = typeof telefone_digitado === 'string' ? telefone_digitado : '';
+%>
+<div class="login-page login-page--register" data-login-page>
+  <div class="login-backdrop" aria-hidden="true" data-login-spotlight>
+    <img src="/img/comida_madero.jpg" alt="" width="2400" height="1600" fetchpriority="high">
+  </div>
+  <header class="login-header">
+    <a class="login-wordmark" href="/" aria-label="Madero — página inicial">MADERO</a>
+    <a class="login-back" href="/" aria-label="Voltar ao site">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+      <span>Voltar ao site</span>
+    </a>
+  </header>
+
+  <div class="login-center">
+    <section class="login-panel" aria-labelledby="register-title">
+      <div class="login-heading login-heading--profile">
+        <div><h1 id="register-title">Faça parte.</h1>
+        <p>Crie sua conta e entre nos bastidores do Madero.</p></div>
+        <%- include('partials/user-avatar-field', { avatarPhoto: typeof foto_atual === 'string' ? foto_atual : '', avatarError: typeof foto_erro === 'string' ? foto_erro : '', avatarName: registerName, avatarCompact: true, avatarForm: 'login-form' }) %>
+      </div>
+
+      <nav class="login-access" aria-label="Acesso à conta">
+        <a href="/usuarios/login">Entrar</a>
+        <a href="/usuarios/novo_usuario" aria-current="page">Criar conta</a>
+      </nav>
+
+      <% if (registerError) { %>
+        <div class="login-message login-message--error" id="login-feedback" role="alert" tabindex="-1" data-login-feedback>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3v.01"/></svg>
+          <div><strong>Vamos tentar de novo?</strong><p><%= registerError %></p></div>
+        </div>
+      <% } %>
+
+      <% if (typeof uploadNotice === 'string' && uploadNotice) { %><p class="login-field-note" role="status"><%= uploadNotice %></p><% } %>
+      <form class="login-form" id="login-form" action="/usuarios/cadastro" method="post" enctype="multipart/form-data" tabindex="-1" data-login-form data-submit-pending="Criando conta…" data-submit-status="Criando sua conta.">
+        <div class="login-field">
+          <label for="nome">Nome completo</label>
+          <div class="login-input-wrap">
+            <input id="nome" name="nome" type="text" value="<%= registerName %>" placeholder="Como você se chama?" autocomplete="name" maxlength="100" required>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="usuario">Usuário</label>
+          <div class="login-input-wrap">
+            <input id="usuario" name="usuario" type="text" value="<%= registerUsername %>" placeholder="Escolha seu usuário de acesso" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="100" required>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="email">E-mail</label>
+          <div class="login-input-wrap">
+            <input id="email" name="email" type="email" value="<%= registerEmail %>" placeholder="voce@exemplo.com" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254" required>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="telefone">Telefone <span class="login-label-optional">(opcional)</span></label>
+          <div class="login-input-wrap">
+            <input id="telefone" name="telefone" type="tel" value="<%= registerPhone %>" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel" maxlength="40">
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="senha">Senha</label>
+          <div class="login-input-wrap">
+            <input id="senha" name="senha" type="password" placeholder="Crie sua senha" autocomplete="new-password" required aria-describedby="login-caps-lock">
+            <button class="login-password-toggle" type="button" aria-label="Mostrar senha" aria-controls="senha" aria-pressed="false" data-password-toggle hidden>
+              <svg class="login-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="login-eye__slash" d="m3 3 18 18"/></svg>
+              <span data-password-toggle-label>Mostrar</span>
+            </button>
+          </div>
+          <p class="login-caps-lock" id="login-caps-lock" role="status" data-caps-lock hidden>Caps Lock está ativado.</p>
+        </div>
+        <div class="login-field">
+          <label for="confirmar_senha">Confirmar senha</label>
+          <div class="login-input-wrap">
+            <input id="confirmar_senha" name="confirmar_senha" type="password" placeholder="Repita sua senha" autocomplete="new-password" required aria-describedby="register-password-match register-confirm-caps-lock">
+            <button class="login-password-toggle" type="button" aria-label="Mostrar confirmação de senha" aria-controls="confirmar_senha" aria-pressed="false" data-password-toggle data-password-name="confirmação de senha" hidden>
+              <svg class="login-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="login-eye__slash" d="m3 3 18 18"/></svg>
+              <span data-password-toggle-label>Mostrar</span>
+            </button>
+          </div>
+          <p class="login-field-note" id="register-password-match" aria-live="polite" aria-atomic="true" data-password-match>Repita a senha escolhida.</p>
+          <p class="login-caps-lock" id="register-confirm-caps-lock" role="status" data-caps-lock hidden>Caps Lock está ativado.</p>
+        </div>
+        <button class="login-submit" type="submit" data-login-submit>
+          <span data-submit-label>Criar minha conta</span>
+          <span class="login-submit__icon" aria-hidden="true">
+            <svg class="login-submit__arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+            <span class="login-submit__spinner"></span>
+          </span>
+        </button>
+        <span class="login-sr-only" role="status" aria-live="polite" data-login-status></span>
+      </form>
+    </section>
+  </div>
+
+  <footer class="login-footer">
+    <span>© <%= new Date().getFullYear() %> Madero</span>
+    <span>Desenvolvido por <span class="login-studio">MONKCODERS</span></span>
+  </footer>
+</div>

@@ -1,0 +1,163 @@
+<%
+  const state = typeof data === 'object' && data !== null ? data : null;
+  const errorMessage = typeof dashboardError === 'string' ? dashboardError : '';
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const numeric = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+  const number = value => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(numeric(value));
+  const money = value => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numeric(value));
+  const isoDate = value => { if (value === null || value === undefined || value === '') return ''; const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toISOString(); };
+  const snapshot = isoDate(state?.geradoEm || Date.now()) || new Date().toISOString();
+  const readableDate = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(snapshot));
+  const lowStock = state?.produtosAbaixoMinimoList || [];
+  const movements = state?.ultimasMovimentacoes || [];
+  const ranking = state?.produtosRanking || [];
+  const rankingMax = Math.max(1, ...ranking.map(item => Math.max(0, numeric(item.estoque))));
+  const categoryColors = ['#d5c06b', '#a48e50', '#746846', '#e9dcc1', '#b5ada0', '#514c3e'];
+  const categoryRows = (state?.categorias?.labels || []).map((label, index) => ({ label, value: numeric(state.categorias.values[index]), color: categoryColors[index % categoryColors.length] }));
+  const positiveValue = categoryRows.reduce((sum, row) => sum + Math.max(0, row.value), 0);
+  let angle = 0;
+  const slices = categoryRows.filter(row => row.value > 0).map(row => {
+    const start = angle;
+    angle += row.value / positiveValue * 360;
+    return row.color + ' ' + start.toFixed(4) + 'deg ' + angle.toFixed(4) + 'deg';
+  });
+  const donutBackground = slices.length ? 'conic-gradient(' + slices.join(', ') + ')' : '#333129';
+  const safeImage = value => typeof value === 'string' && (/^https?:\/\//i.test(value) || /^\/(?!\/)/.test(value)) ? value : '';
+  const ready = Boolean(state && !errorMessage);
+  const criticalStockCount = lowStock.filter(item => numeric(item.estoque) <= 0).length;
+  const replenishmentTone = !ready || numeric(state.totalProdutos) === 0 ? 'neutral'
+    : numeric(state.produtosAbaixoMinimo) === 0 ? 'positive'
+      : criticalStockCount > 0 ? 'negative' : 'warning';
+  const balanceTone = value => numeric(value) < 0 ? 'negative' : numeric(value) > 0 ? 'positive' : 'neutral';
+%>
+<div class="dash-shell" data-dashboard>
+  <%- include('partials/stock-header', { activePage: '/painel', username }) %>
+
+  <div class="dash-content" id="dashboard-content" tabindex="-1">
+    <% if (notice) { %><p class="dash-notice" role="status"><%- include('partials/dashboard-icon', { name: 'check' }) %><%= notice %></p><% } %>
+
+    <section class="dash-intro" aria-labelledby="dashboard-title">
+      <div class="dash-intro-content">
+        <h1 id="dashboard-title">Visão geral</h1>
+        <p>Consulte os saldos e registre entradas e saídas.</p>
+        <nav class="dash-actions" aria-label="Ações do estoque">
+          <a class="dash-button dash-button--gold" href="/movimentacoes/nova_movimentacao"><%- include('partials/dashboard-icon', { name: 'transfer' }) %>Registrar entrada ou saída</a>
+          <a class="dash-button dash-button--secondary" href="/produtos/novo_produto"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Novo produto</a>
+          <a class="dash-text-link" href="/movimentacoes/listar_estoque">Consultar estoque <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+        </nav>
+      </div>
+      <div class="dash-intro-photo" aria-hidden="true"><img src="/img/comida_madero.jpg" alt="" width="2400" height="1600" decoding="async" fetchpriority="high" data-dashboard-reveal></div>
+    </section>
+
+    <% if (ready) { %>
+      <section class="dash-overview" aria-labelledby="overview-title">
+        <div class="dash-overview-heading"><h2 id="overview-title">Resumo do estoque</h2><div class="dash-snapshot"><span>Consultado em <time datetime="<%= snapshot %>" data-dashboard-date><%= readableDate %></time></span><a href="/painel" class="dash-refresh"><%- include('partials/dashboard-icon', { name: 'refresh' }) %>Atualizar dados</a></div></div>
+        <div class="dash-metrics">
+          <article class="dash-metric <%= state.produtosAbaixoMinimo > 0 ? 'dash-metric--attention' : '' %>">
+            <h3>Produtos abaixo do mínimo</h3>
+            <p class="dash-metric-value" data-tone="<%= replenishmentTone %>"><%= number(state.produtosAbaixoMinimo) %></p>
+            <p class="dash-metric-detail"><%= criticalStockCount > 0 ? number(criticalStockCount) + ' com saldo zerado ou negativo' : (state.produtosAbaixoMinimo > 0 ? 'Precisam de reposição' : (state.totalProdutos > 0 ? 'Nenhum alerta de reposição' : 'Ainda sem produtos cadastrados')) %></p>
+            <a href="#reposicao" class="dash-metric-link">Conferir reposição <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+          </article>
+          <article class="dash-metric">
+            <h3>Produtos cadastrados</h3>
+            <p class="dash-metric-value"><%= number(state.totalProdutos) %></p>
+            <p class="dash-metric-detail">Saldo total: <%= number(state.totalEstoque) %> · <%= number(state.totalCategorias) %> <%= state.totalCategorias === 1 ? 'categoria' : 'categorias' %></p>
+            <a href="/produtos/listar" class="dash-metric-link">Ver produtos <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+          </article>
+          <article class="dash-metric">
+            <h3>Valor em estoque</h3>
+            <p class="dash-metric-value dash-metric-value--money"><%= money(state.valorTotalEstoqueNumero) %></p>
+            <p class="dash-metric-detail">Valor dos produtos × saldo atual</p>
+            <a href="#analise" class="dash-metric-link">Ver por categoria <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+          </article>
+          <article class="dash-metric">
+            <h3>Movimentações</h3>
+            <p class="dash-metric-value"><%= number(state.totalMovimentacoes) %></p>
+            <p class="dash-metric-detail">Total de entradas e saídas registradas</p>
+            <a href="/movimentacoes/listar" class="dash-metric-link">Ver histórico <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+          </article>
+        </div>
+      </section>
+
+      <div class="dash-operations <%= !lowStock.length && !movements.length ? 'dash-operations--empty' : '' %>">
+        <section class="dash-panel dash-replenishment" id="reposicao" aria-labelledby="replenishment-title">
+          <div class="dash-panel-heading"><div><h2 id="replenishment-title">Produtos para repor <% if (state.produtosAbaixoMinimo > 0) { %><span class="dash-count-badge" data-tone="<%= replenishmentTone %>"><%= number(state.produtosAbaixoMinimo) %></span><% } %></h2></div><% if (lowStock.length) { %><label class="dash-search" hidden data-stock-search-control><%- include('partials/dashboard-icon', { name: 'search' }) %><span class="dash-sr-only">Buscar produto ou categoria na reposição</span><input type="search" placeholder="Nome ou categoria" data-stock-search></label><% } %></div>
+          <% if (lowStock.length) { %>
+            <p class="dash-table-hint">Deslize a tabela para consultar todos os campos.</p>
+            <div class="dash-table-scroll" role="region" aria-label="Produtos abaixo do estoque mínimo" tabindex="0">
+              <table class="dash-table">
+                <caption class="dash-sr-only">Produtos que precisam de reposição, seus saldos e a quantidade que falta para atingir o mínimo.</caption>
+                <thead><tr><th scope="col">Produto</th><th scope="col">Categoria</th><th scope="col">Saldo atual</th><th scope="col">Mínimo</th><th scope="col">Faltam</th><th scope="col">Valor unitário</th><th scope="col"><span class="dash-sr-only">Ações</span></th></tr></thead>
+                <tbody><% lowStock.forEach(item => { const image = safeImage(item.imagem); const stock = numeric(item.estoque); const stockLabel = stock < 0 ? 'Saldo negativo' : stock === 0 ? 'Sem estoque' : 'Abaixo do mínimo'; %>
+                  <tr data-stock-row data-search="<%= item.nome_produto + ' ' + item.nome_categoria + ' ' + item.id_produto %>">
+                    <th scope="row"><div class="dash-product"><span class="dash-product-thumb" data-product-thumb><%- include('partials/dashboard-icon', { name: 'box' }) %><% if (image) { %><img src="<%= image %>" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer" data-product-image><% } %></span><span><a href="/produtos/alterar/<%= item.id_produto %>"><%= item.nome_produto %></a><small>#<%= item.id_produto %></small></span></div></th>
+                    <td><%= item.nome_categoria %></td><td class="dash-table-stock"><strong data-tone="<%= stock <= 0 ? 'negative' : 'warning' %>"><%= number(item.estoque) %></strong><span class="dash-stock-label"><%= stockLabel %></span></td><td><%= number(item.estoque_minimo) %></td><td><span class="dash-deficit" data-tone="<%= stock <= 0 ? 'negative' : 'warning' %>"><%= number(Math.max(0, numeric(item.estoque_minimo) - numeric(item.estoque))) %></span></td><td class="dash-nowrap"><%= money(item.valor) %></td><td><a class="dash-row-action" href="/produtos/alterar/<%= item.id_produto %>" aria-label="Editar produto <%= item.nome_produto %>">Editar produto</a></td>
+                  </tr>
+                <% }); %></tbody>
+              </table>
+            </div>
+            <p class="dash-filter-empty" hidden data-stock-filter-empty>Nenhum produto corresponde à sua busca.</p>
+            <div class="dash-table-footer"><span role="status" aria-live="polite" data-stock-filter-count><%= lowStock.length %> produtos para acompanhar</span><a class="dash-text-link" href="/movimentacoes/nova_movimentacao">Registrar entrada ou saída <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a></div>
+          <% } else { %>
+            <div class="dash-empty-state">
+              <% if (state.totalProdutos === 0) { %>
+                <h3>Nenhum produto cadastrado.</h3>
+                <p><%= state.totalCategorias === 0 ? 'Crie uma categoria e cadastre seu primeiro produto para acompanhar a reposição.' : 'Suas categorias já estão prontas. Cadastre o primeiro produto e defina o estoque mínimo.' %></p>
+                <a class="dash-text-link" href="<%= state.totalCategorias === 0 ? '/categorias/cadastro' : '/produtos/novo_produto' %>"><%= state.totalCategorias === 0 ? 'Criar categoria' : 'Cadastrar produto' %><%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+              <% } else { %>
+                <h3 class="dash-empty-ok"><%- include('partials/dashboard-icon', { name: 'check' }) %>Nenhum produto abaixo do mínimo.</h3>
+                <p>Os saldos atendem aos mínimos cadastrados.</p>
+                <a class="dash-text-link" href="/produtos/listar">Ver produtos <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+              <% } %>
+            </div>
+          <% } %>
+        </section>
+
+        <section class="dash-panel dash-activity" aria-labelledby="activity-title">
+          <div class="dash-panel-heading"><div><h2 id="activity-title">Últimas movimentações</h2></div><% if (movements.length) { %><a class="dash-text-link" href="/movimentacoes/listar">Ver todas <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a><% } %></div>
+          <% if (movements.length) { %>
+            <ol class="dash-activity-list"><% movements.forEach(item => { const incoming = item.tipo_movimentacao === 'Entrada'; const outgoing = item.tipo_movimentacao === 'Saída'; const signedQuantity = incoming ? numeric(item.quantidade) : outgoing ? -numeric(item.quantidade) : null; const date = isoDate(item.data_movimentacao); %><li><span class="dash-movement-icon <%= incoming ? 'is-incoming' : '' %>" aria-hidden="true"><%- include('partials/dashboard-icon', { name: incoming ? 'down' : outgoing ? 'up' : 'transfer' }) %></span><div class="dash-movement-main"><strong><%= item.nome_produto %></strong><span><%= item.tipo_movimentacao %> · por <%= item.nome_usuario %></span><% if (item.descricao) { %><p><%= item.descricao %></p><% } %></div><div class="dash-movement-meta"><strong data-tone="<%= balanceTone(signedQuantity) %>"><%= signedQuantity === null ? number(item.quantidade) : (signedQuantity < 0 ? '−' : (signedQuantity > 0 ? '+' : '')) + number(Math.abs(signedQuantity)) %></strong><% if (date) { %><time datetime="<%= date %>" data-movement-date><%= new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(date)) %></time><% } else { %><span>Data indisponível</span><% } %></div></li><% }); %></ol>
+          <% } else { %>
+            <div class="dash-empty-state">
+              <h3>Nenhuma movimentação registrada.</h3>
+              <p><%= state.totalProdutos > 0 ? 'Registre uma entrada ou saída. Os últimos registros aparecerão aqui.' : 'O histórico aparecerá aqui após o primeiro registro de entrada ou saída.' %></p>
+              <% if (state.totalProdutos > 0) { %><a class="dash-text-link" href="/movimentacoes/nova_movimentacao">Registrar entrada ou saída <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a><% } %>
+            </div>
+          <% } %>
+        </section>
+      </div>
+      <section class="dash-analysis" id="analise" aria-labelledby="analysis-title">
+        <h2 id="analysis-title">Análises do estoque</h2>
+        <div class="dash-charts-grid">
+          <section class="dash-panel dash-category-panel" aria-labelledby="categories-title" data-dashboard-reveal>
+            <div class="dash-panel-heading"><div><h2 id="categories-title">Valor por categoria</h2></div><span class="dash-chip">Em R$</span></div>
+            <div class="dash-category-content">
+              <% if (positiveValue > 0) { %><div class="dash-donut" style="--donut-background: <%= donutBackground %>" aria-hidden="true"><div><span>VALOR DISTRIBUÍDO</span><strong><%= money(positiveValue) %></strong><small><%= categoryRows.filter(row => row.value > 0).length %> categorias com saldo positivo</small></div></div><% } %>
+              <% if (categoryRows.length) { %>
+                <ul class="dash-category-legend" aria-label="Valor em estoque por categoria"><% categoryRows.forEach(row => { %><li><span class="dash-category-dot" style="--category-color: <%= row.color %>" aria-hidden="true"></span><span class="dash-category-name"><%= row.label %></span><strong><%= money(row.value) %></strong></li><% }); %></ul>
+              <% } else { %><div class="dash-chart-empty"><h3>Nenhum valor por categoria</h3><p>Os valores serão organizados por categoria quando houver produtos cadastrados.</p></div><% } %>
+            </div>
+            <p class="dash-panel-footnote"><%= categoryRows.some(row => row.value < 0) ? 'O gráfico representa valores positivos. Saldos negativos permanecem identificados na legenda.' : 'Participação de cada categoria no valor atual do estoque.' %></p>
+          </section>
+          <section class="dash-panel dash-ranking-panel" aria-labelledby="ranking-title" data-dashboard-reveal>
+            <div class="dash-panel-heading"><div><h2 id="ranking-title">Maiores saldos</h2></div><span class="dash-chip">Top 5</span></div>
+            <% if (ranking.length) { %>
+              <ol class="dash-ranking"><% ranking.forEach((item, index) => { %><li><span class="dash-rank-number"><%= String(index + 1).padStart(2, '0') %></span><div class="dash-rank-content"><div><a href="/produtos/alterar/<%= item.id_produto %>"><%= item.nome %></a><strong><%= number(item.estoque) %></strong></div><div class="dash-bar-track" aria-hidden="true"><span class="dash-bar" style="width: <%= (Math.max(0, numeric(item.estoque)) / rankingMax * 100).toFixed(3) %>%" data-dashboard-bar></span></div></div></li><% }); %></ol>
+            <% } else { %><div class="dash-chart-empty dash-chart-empty--center"><span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'stock' }) %></span><h3>Nenhum saldo para comparar</h3><p>Cadastre produtos para comparar os saldos disponíveis.</p></div><% } %>
+            <a class="dash-panel-footer-link" href="/movimentacoes/listar_estoque">Ver estoque completo <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+          </section>
+        </div>
+
+      </section>
+    <% } else { %>
+      <section class="dash-error" aria-labelledby="dashboard-error-title" role="alert">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="dashboard-error-title">Não conseguimos carregar os dados.</h2><p><%= errorMessage || 'Tente atualizar a página em instantes.' %></p></div>
+        <a class="dash-button dash-button--gold" href="/painel"><%- include('partials/dashboard-icon', { name: 'refresh' }) %>Tentar novamente</a>
+      </section>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

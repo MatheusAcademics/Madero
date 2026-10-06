@@ -1,0 +1,1239 @@
+@import url('https://fonts.cdnfonts.com/css/gfs-didot');
+
+p, h1, h2, h3, h4, h5, h6 {
+  font-family: 'GFS Didot', sans-serif !important;
+  color: #ffffff;
+}
+h3, h5, h6 {
+  font-size: 2rem !important;
+}
+p {
+  color: #D4C16B;
+  font-size: 1.4rem;
+}
+
+
+.wallpaper {
+    width: 100%;
+    height: 100%;
+    max-height: 600px;
+    position: fixed;
+    z-index: -1;
+    object-fit: cover;
+    filter: brightness(30%);
+}
+
+/* Hero */
+.madero-page .hero {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* ocupa toda a tela */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+.madero-page .hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(30%);
+  user-select: none;
+}
+
+.madero-page .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.65) 100%);
+    z-index: 1;
+}
+
+.madero-page .hero-title {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(2.2rem, 5vw, 10em);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  letter-spacing: 2px;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+}
+
+/* subtítulo e CTA dentro do hero */
+.madero-page .hero-subtitle {
+    position: relative;
+    z-index: 2;
+    color: #f2e6c2;
+    margin-top: 0.6rem;
+    font-size: 1.05rem;
+}
+
+.madero-page .hero-cta {
+    position: relative;
+    z-index: 2;
+    margin-top: 1.2rem;
+    display: inline-block;
+    background: #ffd86b;
+    color: #111;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* About */
+.madero-page .about {
+  background: #000;
+  padding: 100px 10%;
+  border-top-left-radius: 10px; 
+
+}
+
+.madero-page .about h2 {
+  font-size: 2.2rem !important;
+  margin-bottom: 40px;
+}
+
+.madero-page .about-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 40px;
+}
+
+.madero-page .about-text {
+  flex: 1;
+  min-width: 280px;
+  text-align: center;
+}
+
+.madero-page .about-text p {
+  color: #ccc;
+  font-size: 1.4rem;
+  margin-bottom: 25px;
+}
+
+.madero-page .about-img {
+  flex: 1;
+  text-align: right;
+}
+
+
+.madero-page .about-img img {
+  width: 600px;
+  border-radius: 8px;
+}
+
+/* Menu */
+
+.madero-page .menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  background: #000000;
+  padding: 80px 10%; 
+  width: 100%;
+  box-sizing: border-box; 
+}
+
+
+.menu-conteudo {
+  display: flex;
+  flex-wrap: wrap; 
+  align-items: center;
+  justify-content: center;
+  gap: 0px; 
+  width: 100%;
+  margin-top: 40px;
+}
+
+
+.cardapio {
+  border-bottom: 2px solid #cfa24a;
+  width: 100%;
+  text-align: left; 
+  font-size: 2.2rem !important;
+  color: #fff;
+  padding-bottom: 10px;
+  margin: 0;
+}
+
+
+.madero-page .menu-img {
+  flex: 1; 
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.madero-page .menu-text {
+  flex: 1; 
+  min-width: 300px;
+  text-align: center; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.madero-page .index1 {
+  font-size: 50%;
+}
+
+
+.madero-page .menu-text h2 {
+  display: none; 
+}
+
+.madero-page .menu-text p {
+  color: #e0e0e0; 
+  font-size: 1.4rem !important;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  font-family: 'GFS Didot', serif;
+}
+
+
+@media (max-width: 1500px) {
+  .menu-conteudo {
+    flex-direction: column;
+    gap: 40px;
+    text-align: center;
+  }
+  .cardapio {
+    text-align: center;
+  }
+  .madero-page .menu-img {
+    justify-content: center;
+  }
+}
+
+/* Footer */
+.madero-page .footer {
+  background: #000;
+  color: #aaa;
+  padding: 60px 10%;
+  font-size: 0.9rem;
+}
+
+.madero-page .footer p {
+  text-align: center;
+  margin-bottom: 50px;
+  color: #cfa24a;
+}
+
+.madero-page .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 30px;
+}
+
+.madero-page .footer-links h4 {
+  color: #fff;
+  margin-bottom: 15px;
+  font-size: 1.125rem;
+}
+
+.madero-page .footer-links ul {
+  list-style: none;
+}
+.nomezinho{
+  font-size: 0.7rem;
+}
+
+.nomezinho1 a {
+
+}
+.linkizinho1{
+  list-style: none;
+  margin-left: -40px;
+}
+
+.linkizinho1 a {
+  font-size: 0.920rem;
+}
+.linkizinho2{
+    margin-left: 20px;
+    gap: 10px;
+    font-size: 0.7rem;
+}
+.linkizinho3{
+    margin-left: -15px;
+}
+
+.madero-page .footer-links li {
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+}
+
+.madero-page .footer-links a {
+  color: #fff;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.madero-page .footer-links a:hover {
+  color: #cfa24a;
+}
+
+/* Estilos globais para a página */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'GFS Didot', sans-serif;                               
+    background-color: #111; /* fundo escuro neutro — hero terá a imagem */
+     color: #ffffff; /* Texto claro */
+     min-height: 100vh;
+    overflow-x: hidden; /* Evita rolagem horizontal */
+}
+
+/* Container principal para o layout da página */
+.container-principal {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* conteúdo centralizado; hero ocupa a tela inteira */
+  min-height: 100vh;
+}
+
+/* Estilos para o cabeçalho */
+.header-main {
+  top: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  box-shadow: none;
+  width: 100%; 
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  border-bottom: 2px solid #D5C06B;
+  justify-content: center;
+  z-index: 50;
+}
+
+.header-main {
+  transition: transform 0.5s ease-in-out;
+}
+
+.header-main.escondido {
+  transform: translateY(-100%);
+}
+
+/* Header interno: conteúdo */
+.header-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    padding-inline: 3vw;
+}
+
+.header-categoria, .header-interno, .header-armazem, .header-movimentacao, .header-estoque  {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-inline: 70px; ;
+  padding-block: 1vw;
+
+}
+
+/* Estilos para o menu de navegação (novo) */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.nav-brand {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Links */
+.nav-links {
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem; /* Aumenta o espaçamento entre os links */
+}
+
+.nav-link {
+    font-size: 0.95rem;
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease, border-bottom 0.2s ease;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    padding: 6px 8px;
+}
+
+.nav-link:hover {
+    color: #ffd86b;
+    border-bottom: 2px solid #ffd86b;
+    background: rgba(255,255,255,0.03);
+}
+
+/* Hero em tela cheia: imagem de fundo local ao index.ejs */
+.madero-page .hero {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* ocupa toda a tela */
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.madero-page .hero-img {
+  display: table;
+  position: absolute;
+  inset: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  object-fit: cover;
+  filter: brightness(60%);
+}
+
+.madero-page .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.65) 100%);
+    z-index: 1;
+}
+
+/* subtítulo e CTA dentro do hero */
+.madero-page .hero-subtitle {
+    position: relative;
+    z-index: 2;
+    color: #f2e6c2;
+    margin-top: 0.6rem;
+}
+
+.madero-page .hero-cta {
+    position: relative;
+    z-index: 2;
+    margin-top: 1.2rem;
+    display: inline-block;
+    background: #ffd86b;
+    color: #111;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* About */
+.madero-page .about {
+  background: #000;
+  padding: 100px 10%;
+  border-top-left-radius: 10px; 
+
+}
+
+.madero-page .about h2 {
+  font-size: 1.8rem;
+  margin-bottom: 40px;
+}
+
+.madero-page .about-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 40px;
+}
+
+.madero-page .about-text {
+  flex: 1;
+  min-width: 280px;
+}
+
+.madero-page .btn {
+  display: inline-block;
+  background: transparent;
+  border: 2.25px solid white;
+  color: white;
+  padding: 10px 18px;
+  text-decoration: none;
+  transition: 0.2s;
+  font-weight: 500;
+}
+
+.madero-page .btn:hover {
+  border-color: #cfa24a;
+}
+
+.madero-page .about-img {
+  flex: 1;
+  text-align: right;
+}
+
+
+.madero-page .about-img img {
+  width: 280px;
+  border-radius: 8px;
+}
+
+.madero-page .menu-img img {
+  width: auto;
+  height: 100%;
+  border-radius: 8px;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  filter: brightness(70%);
+}
+
+.madero-page .menu-text {
+  max-width: 400px;
+}
+
+.madero-page .menu-text h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #cfa24a;
+}
+
+.quemsomos {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #cfa24a;
+}
+
+/* Footer */
+.madero-page .footer {
+  background: #000;
+  color: #aaa;
+  padding: 60px 10%;
+  border-top: 1px solid #333;
+  font-size: 0.9rem;
+}
+
+.madero-page .footer p {
+  text-align: center;
+  margin-bottom: 50px;
+  color: #cfa24a;
+}
+
+.madero-page .footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 30px;
+}
+
+
+.madero-page .footer-links ul {
+  list-style: none;
+}
+
+.linkizinho1{
+  list-style: none;
+  margin-left: -40px;
+  color: #ccc ;
+}
+
+.linkizinho1 a{
+height: 200px;
+}
+
+.linkzinho2 ul a{
+  height: 200p;
+}
+
+.linkizinho2{
+    margin-left: 20px;
+}
+.linkizinho3{
+    margin-left: -15px;
+}
+.madero-page .footer-links li {
+  margin-bottom: 8px;
+}
+
+/* Estilos para o título */
+h1 {
+    font-family: 'GFS Didot', sans-serif; 
+
+    color: #ffffff;
+
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+span {
+    color: white;
+    font-size: 15px;
+}
+
+.link-cadastro{
+    text-align: center;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+
+.link-cadastro u{
+    color: gold;
+    text-decoration: none;
+}
+
+.zona-cadastro{
+    text-align: center;
+    margin-top: 1rem;
+    text-decoration: none;
+}
+/* Estilos para o conteúdo principal */
+.main-content {
+  background-color: #0D0D0D;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: auto;
+}
+
+/* Mensagem de alerta */
+.mensagem-alerta {
+    text-align: center;
+    font-weight: bold;
+    color: #08e740; /* Vermelho escuro */
+    padding-bottom: 20px;
+    border-bottom: 2px solid black;
+    margin-right: 150px;
+}
+
+.mensagem-sucesso {
+    text-align: center;
+    font-weight: bold;
+    color: #08e740; /* Vermelho escuro */
+}
+
+.mensagem-erro {
+    text-align: center;
+    font-weight: bold;
+    color: #e70808; /* Vermelho escuro */
+}
+
+/* Estilos para o formulário de pesquisa */
+.form-pesquisa {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.input-pesquisa {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #D5C06B;
+    border-radius: 0.375rem;
+    background-color: #000000;
+    color: #ffffff;
+    box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.botao-pesquisa {
+    background-color: #000000;
+    color: #ffffff;
+    border: 2px solid #D5C06B;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.botao-pesquisa:hover {
+    background-color: #505050;
+}
+
+/* Estilos para a tabela */
+.tabela-container {
+    overflow-x: auto; /* Permite rolagem em telas pequenas */
+    padding: 70px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #D5C06B; /* Amarelo-dourado para a tabela */
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+thead th {
+    font-family: 'GFS Didot', sans-serif;
+    background-color: #000000;
+    border: 2px solid #3a3a3a;
+    color: #ffffff;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+tbody tr {
+    background-color: #000000;
+    transition: background-color 0.3s ease;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #000000;   /* Cor para linhas pares */
+    border-color: #3a3a3a;
+}
+
+tbody tr:hover {
+    background-color: #151515; /* Cor ao passar o mouse */
+}
+
+td {
+    padding: 0.75rem;
+    border: 2px solid #3a3a3a   ; /* Borda de madeira */
+    text-align: center;
+    color: #ffffff;
+}
+
+/* Estilos para os botões de ação na tabela */
+.form-acoes {
+    display: inline-block;
+    margin: 0 0.25rem;
+}
+
+.botao-acao {
+    font-size: 1.25rem;
+    width: 40px;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid #000000;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    justify-content: center;
+    align-items: center;
+    color: #000000;
+    user-select: none;
+}
+
+.botao-acao:hover {
+    border: 2px solid lightgray;
+    text-shadow: 2px solid black;
+}
+
+.botao-acao.editar {
+    background-color: #f9a825;
+}
+
+.botao-acao.editar:hover {
+    background-color: #e67e22;
+}
+
+.botao-acao.remover {
+    background-color: #dc2626;
+}
+
+.botao-acao.remover:hover {
+    background-color: #b91c1c;
+}
+
+.botao-acao.botao-incluir {
+    background-color: #444;
+}
+
+.botao-acao.botao-incluir:hover {
+    background-color: #444;
+}
+
+/* Estilos para a página de login/cadastro */
+.container-login {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: url('/img/loja.jpg') no-repeat center center fixed;
+  background-size: cover;
+  background-color: rgba(0, 0, 0, 0.75);
+  background-blend-mode: multiply;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container-login input{
+  color: white;
+}
+
+.container-login select{
+  color: white;
+}
+
+.card-login {
+  background-color: rgba(255, 255, 255, 0.2); /* transparência */
+  backdrop-filter: blur(10px); /* efeito vidro fosco */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 40px;
+  width: 300px;
+  margin: 40px;
+  color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  text-decoration: none;
+}
+
+.card-login a{
+  color: white;
+}
+
+.card-login input{
+  height: 30px;
+  text-align: center;
+}
+
+.card-login2{
+  margin-left: 500px;
+  border-radius: 50%;
+}
+
+.card-login3{
+  margin-left: 500px;
+}
+
+.card-login4{
+  margin-left: 500px;
+
+}
+
+.card-login4 input{
+  color: white;
+}
+
+.card-login4 select{
+  color: white;
+}
+
+.card-login:hover {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.card-title {
+    color: white;
+    text-shadow: 2px 2px 15px rgba(131, 131, 131, 0.5);
+    font-weight: bold;
+    text-align: center;
+    font-family: 'GFS Didot';
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
+}
+
+p {
+    text-align: center;
+    color: #f9dd5f;
+    font-family: 'GFS Didot', sans-serif; 
+    font-size: 20px;
+}
+.form-login {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  
+}
+
+.input-form {
+    padding: 0.2rem;
+    background-color: transparent;
+    backdrop-filter: blur(20px); /* efeito vidro fosco */
+    color: #333;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+.input-form:hover {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);   
+}
+
+.input-form:focus {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background-color: transparent;
+  color: black;
+  backdrop-filter: blur(20px); /* efeito vidro fosco */
+}
+
+.botao-form {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: 2.5px solid #000000;
+    color: white;
+    font-family: 'GFS Didot', sans-serif; 
+}
+
+.botao-entrar {
+  margin-top: 3.75rem;
+  padding: 0.5rem;
+  font-size: 1.15rem;
+  font-family: 'late', sans-serif;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */
+}
+
+.botao-entrar:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */ 
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+  border-color: rgb(255, 170, 0);
+  color: white;
+}
+
+.botao-entrar:focus {
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */ 
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+  border-color: rgb(255, 170, 0, 0.9);
+}
+
+.botao-cadastrar {
+  margin-top: 3.5rem;
+  padding: 0.5rem;
+  font-size: 1.15rem;
+  font-family: 'late', sans-serif;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */
+}
+
+.botao-cadastrar:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */ 
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
+  border-color: rgb(255, 170, 0);
+  color: white;
+}
+
+.botao-cadastrar:focus {
+  background-color: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(20px); /* efeito vidro fosco */ 
+  box-shadow: 0 0 10px rgba(255, 170, 0, 0.7);
+  border-color: rgb(255, 170, 0, 0.9);
+}
+
+.label {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    font-family: 'late', sans-serif;
+    text-align: left;
+}
+
+.link-claro {
+    color: #000000;
+    text-decoration: underline;
+}
+
+/* Estilos para a página de produtos em formato de cards */
+.produtos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.card-produto {
+    background-color: #d1b191; /* Cor de areia */
+    border: 2px solid #000000; /* Borda de madeira */
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-produto:hover {
+    transform: translateY(-5px);
+}
+
+.produto-imagem-container {
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.produto-imagem {
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0.375rem;
+}
+
+.produto-info {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.produto-nome {
+    font-family: 'GFS Didot', sans-serif; 
+    font-size: 1rem;
+    color: #000000;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.acoes-card {
+    display: flex;
+    justify-content: space-around;
+    gap: 0.5rem;
+}
+
+
+
+.dashboard .graficos, .dashboard .cards , .dashboard .cards2, .dashboard .card3{
+display: flex;
+justify-content: space-between;
+gap: 30px;
+margin-top: 40px;
+margin-inline: 40px;
+}
+
+.dashboard .grafico, .dashboard .card , .dashboard .card1, .dashboard .card2 {
+width: 50%;
+box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+padding: 10px;
+border-radius: 7px;
+background-color: rgb(6, 6, 6);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+border: 2px solid gold;
+text-align: center;
+flex-wrap: wrap;
+}
+
+.dashboard .card3{
+width: 100%;
+box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+padding: 10px;
+border-radius: 7px;
+background-color: rgb(6, 6, 6);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+border: 2px solid gold;
+text-align: center;
+flex-wrap: wrap;
+}
+
+.dashboard h2 {
+  font-family: GFS Didot ;
+  font-size: 30px;
+  color: #ffffff;
+}
+
+.dashboard h3 {
+  font-size: 80px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.dashboard_home{
+  text-align: center;
+}
+
+
+/* SOBRE NÓS */
+
+.sobre-page {
+  font-size: 2.5em !important;
+}
+
+.banner {
+  position: relative;
+  width: 100%; 
+  margin: 0 auto;
+}
+
+.banner-img {
+  width: 100%;
+  height: 450px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  overflow: hidden;
+} 
+
+.banner-overlay {
+  position: absolute;       /* fixa na tela */
+  bottom: 0px;          /* distância do fundo */
+  left: 0px;            /* distância da esquerda */
+  width: 300px;          /* tamanho da imagem */
+  height: auto;
+  padding-left: 100px;
+  padding-bottom: 15px;
+  padding-top: 25px;
+  padding-right: 50px;
+  border-top-right-radius: 25px;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.65);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.banner-title {
+  color: white;
+  font-size: 5rem;
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.7);
+  z-index: 1; 
+}
+
+.timeline-item {
+  border-bottom: 2px solid #444;
+}
+
+
+.carousel {
+  overflow: hidden;
+  width: 100%;
+  max-width: 800px;
+  margin: auto;
+}
+
+.carousel-track {
+  display: flex;
+  animation: slide 12s infinite;
+}
+
+.carousel-track img {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 900px;
+  height: 100px;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-track img {
+  width: 100%;
+  flex: 0 0 100%;
+  object-fit: cover;
+  border-right: 1px solid rgb(196, 196, 196);
+}
+
+/* Botões de navegação */
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: transparent;
+  padding: 5px 16px;
+  border: none;
+  border-radius: 30%;
+  font-size: 30px;
+  cursor: pointer;
+  color: white;
+  font-weight: bolder;
+  z-index: 10;
+  transition: all 0.3s;
+  text-justify: center;
+  text-align: center;
+}
+
+.carousel-btn:hover {
+  background-color: #cfa24a;
+  color: black;
+}
+
+
+.carousel-btn.prev {
+  left: 10px;
+}
+
+.carousel-btn.next {
+  right: 10px;
+}
+
+
+@keyframes slide {
+  0% { transform: translateX(0); }
+  33% { transform: translateX(-100%); }
+  66% { transform: translateX(-200%); }
+  100% { transform: translateX(0); }
+}
+
+/* --- LAYOUT ARMAZÉM (Adicione no final do CSS) --- */
+
+/* Container que limita a largura para ficar alinhado com a tabela */
+.container-armazem {
+    width: 100%;
+    max-width: 1280px; /* Largura máxima igual ao dashboard */
+    margin: 0 auto;    /* Centraliza na tela */
+    padding: 20px 70px; /* 70px nas laterais para alinhar com o padding da .tabela-container existente */
+    box-sizing: border-box;
+}
+
+/* Título centralizado com espaçamento */
+.titulo-pagina {
+    text-align: center;
+    margin-bottom: 40px !important; /* Força espaço abaixo do título */
+    display: block;
+    width: 100%;
+}
+
+/* Barra que separa os itens (Pesquisa na esquerda / Botão na direita) */
+.barra-controles {
+    display: flex;
+    justify-content: space-between; /* O segredo: joga um pra cada ponta */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* Ajuste fino para o botão de adicionar ficar quadrado e bonito */
+.btn-adicionar-topo {
+    width: 45px;
+    height: 45px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background-color: #1e1e1e;
+    color: #cfa24a;
+    border: 1px solid #cfa24a;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-adicionar-topo:hover {
+    background-color: #cfa24a;
+    color: #000;
+}
+

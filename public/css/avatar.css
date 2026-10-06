@@ -1,0 +1,49 @@
+/* Fotos opcionais: mesma identificação com ou sem imagem e sem JavaScript. */
+.user-avatar { position: relative; display: inline-grid; flex: 0 0 auto; place-items: center; width: 42px; height: 42px; overflow: hidden; border: 1px solid #575039; border-radius: 50%; background: #29291d; color: #dcc67a; font: 500 14px/1 Arial, sans-serif; }
+.user-avatar img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.user-avatar img[hidden], .avatar-field [hidden] { display: none !important; }
+.dash-profile-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; min-width: 0; color: inherit; text-decoration: none; }
+.dash-profile-link .user-avatar { width: 34px; height: 34px; font-size: 11px; }
+.dash-profile-link:hover .dash-account-name { color: var(--dash-gold); }
+.dash-profile-link:focus-visible { outline: 2px solid var(--dash-gold); outline-offset: 4px; }
+.avatar-field { --avatar-muted: var(--dash-muted, #aaa998); --avatar-line: var(--dash-line, #4d4c3c); --avatar-accent: var(--dash-gold, #d5c06b); display: flex; align-items: flex-start; gap: 18px; min-width: 0; margin-bottom: 22px; }
+.avatar-field-preview { width: 64px; height: 64px; margin-top: 4px; font-size: 21px; }
+.avatar-field-controls { flex: 1; min-width: 0; }
+.avatar-field-title { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+.avatar-field-title span { margin-left: 8px; color: var(--avatar-muted); font-size: 11px; font-weight: 400; }
+.avatar-field input[type="file"] { display: block; width: 100%; max-width: 100%; min-height: 44px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--avatar-muted); font-size: 12px; line-height: 44px; }
+.avatar-field input[type="file"]::file-selector-button { min-height: 44px; margin-right: 12px; padding: 0 14px; border: 1px solid var(--avatar-line); border-radius: 4px; background: transparent; color: inherit; font: inherit; font-weight: 500; cursor: pointer; }
+.avatar-field input[type="file"]:hover::file-selector-button { border-color: var(--avatar-accent); }
+.avatar-field input:focus-visible, .avatar-field button:focus-visible { outline: 2px solid var(--avatar-accent); outline-offset: 3px; }
+.avatar-field-hint, .avatar-field-feedback, .avatar-field-error, .avatar-field-notice { margin: 4px 0 0; font-size: 11px; line-height: 1.5; color: var(--avatar-muted); overflow-wrap: anywhere; }
+.avatar-field-error, .avatar-field-feedback[data-state="error"] { color: #f1a99d; }
+.avatar-field-feedback:empty, .avatar-field-actions:empty { display: none; }
+.avatar-field-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
+.avatar-field-actions button { min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--avatar-accent); font-size: 12px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.avatar-field .avatar-field-remove { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; color: var(--avatar-muted); font-size: 12px; cursor: pointer; }
+.avatar-field .avatar-field-remove input { width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--avatar-accent); }
+.main-login .avatar-field { --avatar-muted: var(--login-muted); --avatar-line: var(--login-line); --avatar-accent: var(--login-gold-deep); grid-column: 1 / -1; gap: 12px; margin: 0; }
+.main-login .avatar-field-preview { width: 54px; height: 54px; }
+.main-login .avatar-field-title { margin-bottom: 0; font-size: 12px; }
+.main-login .avatar-field input[type="file"] { font-size: 11px; }
+.main-login .avatar-field-error, .main-login .avatar-field-feedback[data-state="error"] { color: #984226; }
+.main-login .avatar-field-hint { margin-top: 0; }
+.login-heading--profile { display: grid; grid-template-columns: minmax(0, 1fr) 90px; align-items: center; gap: 12px; }
+.main-login .avatar-field--compact { position: relative; display: grid; justify-items: center; grid-column: auto; gap: 4px; width: 90px; }
+.avatar-field--compact .avatar-field-controls { width: 100%; text-align: center; }
+.main-login .avatar-field--compact .avatar-field-title { margin: 0; font-size: 10px; }
+.avatar-field--compact .avatar-field-title span { display: block; margin: 0; font-size: 9px; }
+.main-login .avatar-field--compact input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.avatar-field--compact:focus-within .avatar-field-preview { outline: 2px solid var(--avatar-accent); outline-offset: 4px; }
+.main-login .avatar-field--compact .avatar-field-hint, .main-login .avatar-field--compact .avatar-field-feedback, .main-login .avatar-field--compact .avatar-field-error, .main-login .avatar-field--compact .avatar-field-notice { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.main-login .avatar-field--compact .avatar-field-feedback[data-state="error"] { position: static; width: auto; height: auto; margin: 6px 0 0; overflow: visible; clip-path: none; white-space: normal; }
+.avatar-field--compact .avatar-field-actions { position: absolute; right: -12px; top: -8px; z-index: 1; }
+.avatar-field--compact .avatar-field-actions button { width: 44px; height: 44px; padding: 0; border-radius: 50%; color: var(--login-ink); font-size: 22px; text-decoration: none; }
+@media (min-width: 640px) and (max-height: 800px) {
+  .login-page--register .login-center { padding-block: 12px; }
+  .login-page--register .login-panel { padding-block: 18px; }
+  .login-page--register .login-heading h1 { font-size: 40px; }
+  .login-page--register .login-access { margin-top: 8px; }
+  .login-page--register .login-form { margin-top: 12px; gap: 10px 16px; }
+}
+@media (max-width: 380px) { .avatar-field { gap: 10px; } .avatar-field-preview { width: 48px; height: 48px; } .avatar-field input[type="file"]::file-selector-button { padding-inline: 10px; margin-right: 8px; } .dash-profile-link { gap: 6px; } }

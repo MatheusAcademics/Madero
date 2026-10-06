@@ -1,0 +1,39 @@
+# Segredos locais: nunca enviar ao Git, mesmo em repositório privado.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+
+# Dependências instaladas pelo npm ci na hospedagem.
+node_modules/
+
+# Uploads são dados de usuários; copiar separadamente e incluir nos backups.
+# As fotografias de demonstração em public/img/demo continuam versionáveis.
+/public/uploads/
+/uploads/
+
+# Backups do banco e arquivos de transferência podem conter dados pessoais.
+backups/
+*.dump
+*.backup
+*.sql.gz
+*.sql.zip
+backup*.sql
+*-backup.sql
+uploads-*.zip
+uploads-*.tar.gz
+
+# Logs e artefatos de teste, sem ignorar testes ou migrações SQL.
+*.log
+logs/
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+artifacts/
+.tmp/
+tmp/
+.DS_Store
+Thumbs.db

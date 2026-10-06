@@ -1,0 +1,132 @@
+<%
+  const categories = Array.isArray(categorias) ? categorias : [];
+  const fields = typeof values === 'object' && values ? values : {};
+  const problems = typeof errors === 'object' && errors ? errors : {};
+  const generalError = typeof formError === 'string' ? formError : '';
+  const loadingError = typeof loadError === 'string' ? loadError : '';
+  const preserveDraft = typeof submitted !== 'undefined' && submitted === true;
+  const available = categories.length > 0 && !loadingError;
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const labels = { nome: 'Nome do produto', id_categoria: 'Categoria', estoque: 'Estoque inicial', estoque_minimo: 'Estoque mínimo', valor: 'Valor cadastrado', imagem: 'Imagem', imagem_arquivo: 'Arquivo da imagem' };
+  const fieldErrors = Object.entries(problems).filter(([key, message]) => labels[key] && typeof message === 'string' && message);
+  const describe = key => key + '-hint' + (problems[key] ? ' ' + key + '-error' : '');
+  const invalid = key => problems[key] ? 'aria-invalid="true"' : '';
+%>
+<div class="dash-shell" data-dashboard data-product-create>
+  <%- include('partials/stock-header', { activePage: '/produtos/listar', username }) %>
+  <div class="dash-content product-create-content" id="product-content" tabindex="-1">
+    <nav class="product-create-breadcrumb" aria-label="Localização">
+      <a href="/produtos/listar"><%- include('partials/dashboard-icon', { name: 'left' }) %>Produtos</a><span aria-hidden="true">/</span><span aria-current="page">Novo produto</span>
+    </nav>
+    <header class="product-create-heading"><h1>Novo produto</h1><p>Cadastre as informações do item e defina seu estoque inicial.</p></header>
+
+    <% if (loadingError) { %>
+      <section class="dash-error" role="alert" aria-labelledby="product-load-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="product-load-title">Não foi possível carregar as categorias.</h2><p><%= loadingError %></p><% if (preserveDraft) { %><p>Seus dados foram mantidos abaixo. Copie o que precisar antes de recarregar.</p><% } %></div>
+        <a class="dash-button dash-button--gold" href="/produtos/novo_produto">Tentar novamente</a>
+      </section>
+    <% } else if (!categories.length) { %>
+      <section class="product-create-empty" aria-labelledby="product-empty-title">
+        <span class="product-create-panel-icon"><%- include('partials/dashboard-icon', { name: 'layers' }) %></span>
+        <h2 id="product-empty-title">Crie uma categoria primeiro.</h2>
+        <p>Todo produto precisa de uma categoria para ficar organizado no estoque.</p>
+        <a class="dash-button dash-button--gold" href="/categorias/cadastro"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Criar categoria</a>
+        <a class="dash-text-link" href="/produtos/listar">Voltar para produtos</a>
+      </section>
+    <% } %>
+
+    <% if (available || preserveDraft) { %>
+      <div class="product-create-layout">
+        <form class="product-create-form" action="/produtos/cadastro" method="post" enctype="multipart/form-data" data-product-form>
+          <% if (generalError || fieldErrors.length) { %>
+            <div class="product-create-error-summary" role="alert" tabindex="-1" data-product-error-summary>
+              <p><%= generalError || 'Confira os campos indicados antes de cadastrar.' %></p>
+              <% if (fieldErrors.length) { %><ul><% fieldErrors.forEach(([key, message]) => { %><li><a href="#<%= key %>"><%= labels[key] %>: <%= message %></a></li><% }); %></ul><% } %>
+            </div>
+          <% } %>
+
+          <section class="product-create-section" aria-labelledby="product-info-title">
+            <div class="product-create-section-heading"><span class="product-create-step" aria-hidden="true">01</span><div><h2 id="product-info-title">Identificação</h2><p>Como o produto aparecerá nas consultas.</p></div></div>
+            <div class="product-create-fields">
+              <div class="product-create-field product-create-field--wide">
+                <label for="nome">Nome do produto</label>
+                <input id="nome" name="nome" type="text" value="<%= fields.nome ?? '' %>" required maxlength="100" autocomplete="off" placeholder="Ex.: Queijo cheddar" aria-describedby="<%= describe('nome') %>" <%- invalid('nome') %>>
+                <p class="product-create-hint" id="nome-hint">Use um nome fácil de identificar. Até 100 caracteres.</p>
+                <% if (problems.nome) { %><p class="product-create-field-error" id="nome-error" data-field-error="nome"><%= problems.nome %></p><% } %>
+              </div>
+              <div class="product-create-field product-create-field--wide">
+                <div class="product-create-label-row"><label for="id_categoria">Categoria</label><a href="/categorias/cadastro" target="_blank" rel="noopener">Nova categoria <%- include('partials/dashboard-icon', { name: 'diagonal' }) %><span class="dash-sr-only"> (abre em outra aba)</span></a></div>
+                <select id="id_categoria" name="id_categoria" required aria-describedby="<%= describe('id_categoria') %>" <%- invalid('id_categoria') %>>
+                  <option value="">Selecione uma categoria</option>
+                  <% if (fields.id_categoria && !categories.some(category => String(category.id_categoria) === String(fields.id_categoria))) { %><option value="<%= fields.id_categoria %>" selected data-unavailable>Categoria indisponível (ID <%= fields.id_categoria %>)</option><% } %>
+                  <% categories.forEach(category => { %><option value="<%= category.id_categoria %>" <%- String(category.id_categoria) === String(fields.id_categoria) ? 'selected' : '' %>><%= category.nome || 'Categoria sem nome' %> · ID <%= category.id_categoria %></option><% }); %>
+                </select>
+                <p class="product-create-hint" id="id_categoria-hint">Selecione o grupo deste produto. Se criar uma categoria em outra aba, atualize esta página antes de preencher os demais campos.</p>
+                <% if (problems.id_categoria) { %><p class="product-create-field-error" id="id_categoria-error" data-field-error="id_categoria"><%= problems.id_categoria %></p><% } %>
+              </div>
+            </div>
+          </section>
+
+          <section class="product-create-section" aria-labelledby="product-stock-title">
+            <div class="product-create-section-heading"><span class="product-create-step" aria-hidden="true">02</span><div><h2 id="product-stock-title">Estoque e valor</h2><p>O saldo informado gera uma entrada inicial no histórico.</p></div></div>
+            <div class="product-create-fields">
+              <% [
+                ['estoque', 'Estoque inicial', 'Quantidade disponível agora. Use 0 se o produto ainda não chegou.'],
+                ['estoque_minimo', 'Estoque mínimo', 'O produto aparece para reposição quando o saldo fica abaixo deste valor.'],
+                ['valor', 'Valor cadastrado', 'Valor de referência do produto, em reais.']
+              ].forEach(([key, label, hint]) => { %>
+                <div class="product-create-field <%= key === 'valor' ? 'product-create-field--wide' : '' %>">
+                  <label for="<%= key %>"><%= label %></label>
+                  <div class="<%= key === 'valor' ? 'product-create-money' : 'product-create-number' %>">
+                    <% if (key === 'valor') { %><span aria-hidden="true">R$</span><% } %>
+                    <input id="<%= key %>" name="<%= key %>" type="text" inputmode="decimal" pattern="[0-9]+([.,][0-9]{1,2})?" maxlength="24" required value="<%= fields[key] ?? '' %>" placeholder="0,00" autocomplete="off" aria-describedby="<%= describe(key) %> product-numbers-hint" <%- invalid(key) %>>
+                  </div>
+                  <p class="product-create-hint" id="<%= key %>-hint"><%= hint %></p>
+                  <% if (problems[key]) { %><p class="product-create-field-error" id="<%= key %>-error" data-field-error="<%= key %>"><%= problems[key] %></p><% } %>
+                </div>
+              <% }); %>
+            </div>
+            <p class="product-create-numbers-note" id="product-numbers-hint">Valores a partir de zero, com até 2 casas decimais. Use vírgula ou ponto, sem separador de milhares.</p>
+          </section>
+
+          <section class="product-create-section" aria-labelledby="product-image-title">
+            <div class="product-create-section-heading"><span class="product-create-step" aria-hidden="true">03</span><div><h2 id="product-image-title">Imagem <span>Opcional</span></h2><p>Facilite a identificação visual do item.</p></div></div>
+            <%- include('partials/product-image-field', { fields, problems, describe, invalid }) %>
+          </section>
+
+          <div class="product-create-actions">
+            <a class="product-create-cancel" href="/produtos/listar">Cancelar</a>
+            <button class="dash-button dash-button--gold" type="submit" data-product-submit <%- !available ? 'disabled' : '' %>><span data-product-submit-label>Cadastrar produto</span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button>
+          </div>
+        </form>
+
+        <aside class="product-create-aside" aria-labelledby="product-guide-title">
+          <div class="product-create-preview" data-product-preview hidden>
+            <p class="product-create-eyebrow">Prévia do produto</p>
+            <div class="product-create-preview-image">
+              <span class="product-create-image-placeholder" data-preview-image-placeholder><%- include('partials/dashboard-icon', { name: 'box' }) %></span>
+              <img alt="Prévia da imagem do produto" referrerpolicy="no-referrer" decoding="async" hidden data-preview-image>
+            </div>
+            <p class="product-create-image-message" data-preview-image-message>Nenhuma imagem adicionada.</p>
+            <h2 data-preview-name>Nome do produto</h2>
+            <p class="product-create-preview-category" data-preview-category>Selecione uma categoria</p>
+            <dl class="product-create-preview-values">
+              <div><dt>Estoque inicial</dt><dd data-preview-stock>—</dd></div>
+              <div><dt>Estoque mínimo</dt><dd data-preview-minimum>—</dd></div>
+              <div><dt>Valor cadastrado</dt><dd data-preview-price>—</dd></div>
+            </dl>
+            <p class="product-create-preview-status" data-preview-status></p>
+          </div>
+          <div class="product-create-guide">
+            <h2 id="product-guide-title">Ao cadastrar</h2>
+            <p>O produto e sua entrada inicial são registrados juntos, com sua conta como responsável.</p>
+            <p>Depois, altere o saldo por meio de <a href="/movimentacoes/nova_movimentacao">entradas e saídas</a>. O estoque mínimo ajuda a identificar o que precisa de reposição.</p>
+            <p class="product-create-guide-note">A prévia não salva o produto. Confira os campos e selecione <strong>Cadastrar produto</strong> para concluir.</p>
+          </div>
+        </aside>
+      </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

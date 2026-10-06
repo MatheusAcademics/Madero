@@ -1,0 +1,94 @@
+<%
+  // Serviços e documentos conferidos no rodapé e na navegação oficial do Madero.
+  // As páginas do projeto continuam locais; os serviços oficiais têm indicação externa.
+  const footerReveal = currentPage === 'home' ? 'data-reveal' : (currentPage === 'menu' ? 'data-menu-reveal' : 'data-about-reveal');
+  const footerGroups = [
+    {
+      title: 'O Madero',
+      links: [
+        { label: 'Home', href: '/', page: 'home' },
+        { label: 'Nossa história', href: '/sobre', page: 'about' },
+        { label: 'O Chef detalhista', href: 'https://www.restaurantemadero.com.br/pt/madero/chef' },
+        { label: 'Arquitetura', href: 'https://www.restaurantemadero.com.br/pt/madero/arquitetura' },
+        { label: 'Código de Conduta', href: 'https://master.restaurantemadero.com.br/assets/site/images/coc_madero_2026.pdf', pdf: true },
+        { label: 'Conduta para Parceiros', href: 'https://master.restaurantemadero.com.br/assets/site/images/ccpn_madero_2026.pdf', pdf: true }
+      ]
+    },
+    {
+      title: 'À mesa',
+      links: [
+        { label: 'Cardápio', href: '/cardapio', page: 'menu' },
+        { label: 'Restaurantes próximos', href: 'https://www.restaurantemadero.com.br/pt/restaurante' },
+        { label: 'Reservas', href: 'https://reserva.grupomadero.com.br/reservation' },
+        { label: 'Tabela nutricional e alergênicos', href: 'https://restaurantemadero.com.br/assets/site/arquivos/Tabela_Nutricional_Alergenicos.pdf', pdf: true }
+      ]
+    },
+    {
+      title: 'Onde você estiver',
+      links: [
+        { label: 'Para fazer em casa', href: 'https://www.restaurantemadero.com.br/pt/casa' },
+        { label: 'Delivery', href: 'https://pwa.grupomadero.com.br/' },
+        { label: 'Madero Cashback', href: 'https://cashback-empresa.grupomadero.com.br/register?partner=wXYMG8437C' },
+        { label: 'Cartão presente', href: 'https://www.restaurantemadero.com.br/pt/cartaopresente' }
+      ]
+    },
+    {
+      title: 'Conecte-se',
+      links: [
+        { label: 'Fale conosco', href: 'https://www.restaurantemadero.com.br/pt/contato' },
+        { label: 'Trabalhe conosco', href: 'https://restaurantemadero.pandape.infojobs.com.br/' },
+        { label: 'Investidores', href: 'https://ri.grupomadero.com.br/' },
+        { label: 'Relatórios MTE', href: 'https://www.restaurantemadero.com.br/pt/trabalheconosco/relatorios' },
+        { label: 'Área interna', href: '/usuarios/login' }
+      ]
+    }
+  ];
+%>
+<div class="public-footer-directory">
+  <div class="footer-directory__intro" <%= footerReveal %>>
+    <p class="footer-directory__manifesto">O hambúrguer do Madero<br>faz o mundo melhor.</p>
+    <div class="footer-directory__guide">
+      <span class="footer-directory__eyebrow">Continue a experiência</span>
+      <span>Encontre seu próximo destino.</span>
+    </div>
+  </div>
+
+  <div class="footer-directory__groups">
+    <% footerGroups.forEach((group, index) => { %>
+      <nav class="footer-directory__group" aria-labelledby="footer-group-<%= index %>" <%= footerReveal %>>
+        <h2 id="footer-group-<%= index %>"><%= group.title %></h2>
+        <ul>
+          <% group.links.forEach((link) => { const external = link.href.startsWith('https://'); %>
+            <li>
+              <a class="footer-directory__link" href="<%= link.href %>"
+                <% if (external) { %>target="_blank" rel="noopener noreferrer" aria-describedby="footer-external-description"<% } %>
+                <% if (link.page === currentPage) { %>aria-current="page"<% } %>>
+                <span class="footer-directory__link-label"><%= link.label %></span>
+                <% if (link.pdf) { %><span class="footer-directory__format">PDF</span><% } %>
+                <% if (external) { %>
+                  <svg class="footer-directory__external" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                <% } %>
+              </a>
+            </li>
+          <% }); %>
+        </ul>
+      </nav>
+    <% }); %>
+  </div>
+
+  <div class="footer-directory__bottom">
+    <div class="footer-directory__credits">
+      <span>© <%= new Date().getFullYear() %> Madero</span>
+      <span>Desenvolvido por <span class="footer-directory__studio">MONKCODERS</span></span>
+    </div>
+    <a class="footer-directory__external-note" href="https://www.restaurantemadero.com.br/pt" target="_blank" rel="noopener noreferrer" aria-describedby="footer-external-description">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10"/></svg>
+      Acessar site oficial
+    </a>
+    <a class="footer-directory__top" href="#top">
+      <span>Voltar ao topo</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+    </a>
+  </div>
+  <span class="footer-directory__sr-only" id="footer-external-description">Site oficial do Madero. Abre em uma nova aba.</span>
+</div>

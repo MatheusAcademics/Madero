@@ -1,0 +1,77 @@
+<%
+  const editing = typeof isEditing !== 'undefined' && isEditing === true;
+  const id = typeof recordId !== 'undefined' ? String(recordId) : '';
+  const fields = typeof values === 'object' && values ? values : {};
+  const problems = typeof errors === 'object' && errors ? errors : {};
+  const generalError = typeof formError === 'string' ? formError : '';
+  const loadingError = typeof loadError === 'string' ? loadError : '';
+  const missing = typeof notFound !== 'undefined' && notFound === true;
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const title = editing ? 'Editar usuário' : 'Novo usuário';
+  const labels = { nome: 'Nome completo', usuario: 'Usuário de acesso', email: 'E-mail', telefone: 'Telefone', senha: editing ? 'Nova senha' : 'Senha', confirmar_senha: 'Confirmar senha', foto_arquivo: 'Foto de perfil' };
+  const fieldErrors = Object.entries(problems).filter(([key, message]) => labels[key] && typeof message === 'string' && message);
+  const describe = key => key + '-hint' + (problems[key] ? ' ' + key + '-error' : '');
+  const invalid = key => problems[key] ? 'aria-invalid="true"' : '';
+%>
+<div class="dash-shell" data-dashboard>
+  <%- include('partials/stock-header', { activePage: '/usuarios/listar', username }) %>
+  <div class="dash-content product-create-content" id="user-content" tabindex="-1">
+    <nav class="product-create-breadcrumb" aria-label="Localização"><a href="/usuarios/listar"><%- include('partials/dashboard-icon', { name: 'left' }) %>Usuários</a><span aria-hidden="true">/</span><span aria-current="page"><%= title %></span></nav>
+    <header class="product-create-heading"><h1><%= title %></h1><p><%= editing ? 'Atualize os dados de contato e o acesso à conta.' : 'Cadastre uma conta para acessar a área interna.' %></p></header>
+    <% if (missing || loadingError) { %>
+      <section class="dash-error" role="alert" aria-labelledby="user-unavailable-title"><span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span><div><h2 id="user-unavailable-title"><%= missing ? 'Usuário não encontrado.' : 'Usuário indisponível.' %></h2><p><%= missing ? 'A conta pode ter sido excluída. Volte à lista para continuar.' : loadingError %></p></div><a class="dash-button dash-button--secondary" href="/usuarios/listar">Voltar para usuários</a></section>
+    <% } else { %>
+      <div class="product-create-layout user-form-layout">
+        <form class="product-create-form" action="<%= editing ? '/usuarios/alterar/' + encodeURIComponent(id) : '/usuarios/criar' %>" method="post" enctype="multipart/form-data" data-user-form data-mode="<%= editing ? 'edit' : 'create' %>">
+          <% if (generalError || fieldErrors.length) { %>
+            <div class="product-create-error-summary" role="alert" tabindex="-1" data-user-error-summary><p><%= generalError || 'Confira os campos indicados antes de salvar.' %></p><% if (fieldErrors.length) { %><ul><% fieldErrors.forEach(([key, message]) => { %><li><a href="#<%= key %>"><%= labels[key] %>: <%= message %></a></li><% }); %></ul><% } %><p>Por segurança, digite novamente a senha se quiser defini-la ou alterá-la.</p></div>
+          <% } %>
+          <section class="product-create-section" aria-labelledby="user-identity-title">
+            <div class="product-create-section-heading"><span class="product-create-step" aria-hidden="true">01</span><div><h2 id="user-identity-title">Dados da conta</h2><p>Identificação e contato de quem usa o estoque.</p></div></div>
+            <%- include('partials/user-avatar-field', { avatarPhoto: fields.foto, avatarError: problems.foto_arquivo, avatarName: fields.nome, avatarRemove: fields.remover_foto }) %>
+            <div class="product-create-fields">
+              <% [
+                ['nome', 'text', 'Ex.: Ana Silva', 'Como a pessoa será identificada no cadastro.', 100],
+                ['usuario', 'text', 'Ex.: ana.silva', 'Nome usado para entrar no sistema. Deve ser único.', 100],
+                ['email', 'email', 'nome@exemplo.com', 'E-mail de contato da conta. Deve ser único.', 254],
+                ['telefone', 'tel', '(11) 99999-9999', 'Opcional. Informe de 10 a 15 dígitos, com DDD.', 40]
+              ].forEach(([key, type, placeholder, hint, maximum]) => { %>
+                <div class="product-create-field">
+                  <label for="<%= key %>"><%= labels[key] %><% if (key === 'telefone') { %><span class="user-field-optional">Opcional</span><% } %></label>
+                  <input id="<%= key %>" name="<%= key %>" type="<%= type %>" value="<%= fields[key] ?? '' %>" maxlength="<%= maximum %>" placeholder="<%= placeholder %>" autocomplete="off" <%- key !== 'telefone' ? 'required' : '' %> aria-describedby="<%= describe(key) %>" <%- invalid(key) %>>
+                  <p class="product-create-hint" id="<%= key %>-hint"><%= hint %></p>
+                  <% if (problems[key]) { %><p class="product-create-field-error" id="<%= key %>-error" data-field-error="<%= key %>"><%= problems[key] %></p><% } %>
+                </div>
+              <% }); %>
+            </div>
+          </section>
+          <section class="product-create-section" aria-labelledby="user-password-title">
+            <div class="product-create-section-heading"><span class="product-create-step" aria-hidden="true">02</span><div><h2 id="user-password-title"><%= editing ? 'Alterar senha' : 'Senha de acesso' %><% if (editing) { %><span>Opcional</span><% } %></h2><p><%= editing ? 'Deixe os dois campos em branco para manter a senha atual.' : 'Defina e confirme a senha para esta conta.' %></p></div></div>
+            <div class="product-create-fields">
+              <% ['senha', 'confirmar_senha'].forEach(key => { %>
+                <div class="product-create-field">
+                  <label for="<%= key %>"><%= labels[key] %></label>
+                  <div class="user-password-wrap">
+                    <input id="<%= key %>" name="<%= key %>" type="password" autocomplete="new-password" <%- !editing ? 'required' : '' %> aria-describedby="<%= describe(key) %>" <%- invalid(key) %>>
+                    <button type="button" class="user-password-toggle" data-password-target="<%= key %>" aria-controls="<%= key %>" aria-pressed="false" aria-label="Mostrar <%= key === 'senha' ? 'senha' : 'confirmação da senha' %>" hidden>Mostrar</button>
+                  </div>
+                  <p class="product-create-hint" id="<%= key %>-hint"><%= key === 'senha' ? 'Use uma senha exclusiva. Limite de 72 bytes; acentos e emojis podem ocupar mais de um byte.' : 'Repita exatamente a senha informada ao lado.' %></p>
+                  <% if (problems[key]) { %><p class="product-create-field-error" id="<%= key %>-error" data-field-error="<%= key %>"><%= problems[key] %></p><% } %>
+                </div>
+              <% }); %>
+            </div>
+          </section>
+          <div class="product-create-actions"><a class="product-create-cancel" href="/usuarios/listar">Cancelar</a><button class="dash-button dash-button--gold" type="submit" data-user-submit><span data-user-submit-label><%= editing ? 'Salvar alterações' : 'Cadastrar usuário' %></span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button></div>
+        </form>
+        <aside class="user-form-guide" aria-labelledby="user-guide-title">
+          <span class="product-create-panel-icon"><%- include('partials/dashboard-icon', { name: 'users' }) %></span><h2 id="user-guide-title"><%= editing ? 'Sobre esta conta' : 'Acesso ao estoque' %></h2>
+          <% if (editing) { %><p class="user-record-id">Usuário ID <%= id %></p><% } %>
+          <p>O acesso é feito com o <strong>usuário</strong> e a <strong>senha</strong>. O e-mail e o telefone ficam como dados de contato.</p>
+          <p><%= editing ? 'Alterar os dados da conta não remove suas movimentações. Os registros continuam vinculados ao mesmo usuário.' : 'A nova conta poderá entrar após o cadastro. Nenhum convite ou e-mail é enviado automaticamente.' %></p>
+          <p class="user-guide-note"><%= editing ? 'A senha atual nunca é exibida. Preencha uma nova senha apenas se quiser substituí-la.' : 'Cadastrar outra pessoa não encerra nem troca a sua sessão.' %></p>
+        </aside>
+      </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

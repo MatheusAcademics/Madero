@@ -1,0 +1,19 @@
+{
+  "version": "v1",
+  "categories": {
+    "carnes": "Carnes e defumados [DEMO]",
+    "acompanhamentos": "Pães e acompanhamentos [DEMO]",
+    "frios": "Frios e molhos [DEMO]",
+    "sobremesas": "Sobremesas [DEMO]"
+  },
+  "products": [
+    { "key": "hamburguer", "name": "Hambúrguer Madero 180 g [DEMO]", "category": "carnes", "initial": "72", "outgoing": "18", "minimum": "24", "price": "8.50", "image": "/img/demo/hamburguer.jpg", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/62", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Hamburger - Madero.jpg" },
+    { "key": "bacon", "name": "Bacon fatiado 200 g [DEMO]", "category": "carnes", "initial": "18", "outgoing": "12", "minimum": "10", "price": "14.90", "image": "/img/demo/bacon.png", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/24", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Bacon Fatiado 200g.png" },
+    { "key": "pao", "name": "Pão crocante (4 un.) [DEMO]", "category": "acompanhamentos", "initial": "30", "outgoing": "22", "minimum": "12", "price": "9.90", "image": "/img/demo/pao.jpg", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/79", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Pão Crocante 60g - 4un.jpg" },
+    { "key": "batata", "name": "Batata Madero 400 g [DEMO]", "category": "acompanhamentos", "initial": "60", "outgoing": "18", "minimum": "15", "price": "12.90", "image": "/img/demo/batata.png", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/11", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Batatas Madero 400g.png" },
+    { "key": "cheddar", "name": "Queijo cheddar fatiado 144 g [DEMO]", "category": "frios", "initial": "32", "outgoing": "8", "minimum": "10", "price": "11.50", "image": "/img/demo/cheddar.png", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/108", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Queijo Cheddar 2.png" },
+    { "key": "maionese", "name": "Maionese Madero 330 g [DEMO]", "category": "frios", "initial": "10", "outgoing": "10", "minimum": "6", "price": "15.90", "image": "/img/demo/maionese.jpg", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/73", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_MolhodeMaionese330g.jpg" },
+    { "key": "brownie", "name": "Brownie [DEMO]", "category": "sobremesas", "initial": "20", "outgoing": "6", "minimum": "6", "price": "9.50", "image": "/img/demo/brownie.png", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/46", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Brownie.png" },
+    { "key": "gelato", "name": "Gelato de pistache [DEMO]", "category": "sobremesas", "initial": "12", "outgoing": "4", "minimum": "8", "price": "24.90", "image": "/img/demo/gelato.png", "page": "https://www.restaurantemadero.com.br/pt/casa/produto/58", "source": "https://master.restaurantemadero.com.br/assets/site/images/emporio/MDR TAA_Gelato - Pistache.png" }
+  ]
+}

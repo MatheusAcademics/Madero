@@ -1,0 +1,160 @@
+<%
+  const items = Array.isArray(produtos) ? produtos : [];
+  const categories = typeof categorias !== 'undefined' && Array.isArray(categorias) ? categorias : [];
+  const query = typeof filters === 'object' && filters ? filters : { q: '', categoria: '', status: 'todos', ordem: 'nome' };
+  const pages = typeof pagination === 'object' && pagination ? pagination : { page: 1, pageSize: 20, total: items.length, totalPages: 1 };
+  const totals = typeof summary === 'object' && summary ? summary : { total: 0, belowMinimum: 0, nonPositive: 0 };
+  const error = typeof productsError === 'string' ? productsError : '';
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const noticeIsError = typeof noticeType !== 'undefined' && noticeType === 'error';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const numeric = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+  const number = value => numeric(value) === null ? '—' : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 }).format(numeric(value));
+  const money = value => numeric(value) === null ? '—' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numeric(value));
+  const safeImage = value => typeof value === 'string' && (/^https?:\/\//i.test(value) || /^\/(?!\/|\\)/.test(value)) && !/[\u0000-\u001f]/.test(value) ? value : '';
+  const listUrl = changes => {
+    const values = { q: query.q, categoria: query.categoria, status: query.status, ordem: query.ordem, ...changes };
+    const entries = Object.entries(values).filter(([key, value]) => value !== '' && value !== null && value !== undefined && !(key === 'status' && value === 'todos') && !(key === 'ordem' && value === 'nome') && !(key === 'pagina' && value === 1));
+    return '/produtos/listar' + (entries.length ? '?' + entries.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&') : '');
+  };
+  const filtered = Boolean(query.q || query.categoria || query.status !== 'todos');
+  const stockState = (stock, minimum) => stock === null ? { label: 'Saldo indisponível', tone: 'neutral' }
+    : stock < 0 ? { label: 'Saldo negativo', tone: 'negative' }
+    : stock === 0 ? { label: 'Sem estoque', tone: 'negative' }
+    : minimum === null ? { label: 'Mínimo não definido', tone: 'neutral' }
+    : stock < minimum ? { label: 'Abaixo do mínimo', tone: 'warning' }
+    : { label: 'Mínimo atendido', tone: 'positive' };
+  const currentPages = Array.from(new Set([1, pages.page - 1, pages.page, pages.page + 1, pages.totalPages])).filter(page => page > 0 && page <= pages.totalPages).sort((a, b) => a - b);
+%>
+<div class="dash-shell" data-dashboard data-products>
+  <%- include('partials/stock-header', { activePage: '/produtos/listar', username }) %>
+  <div class="dash-content products-content" id="products-content" tabindex="-1">
+    <header class="products-heading">
+      <div><h1>Produtos</h1><p>Consulte os produtos e acompanhe os saldos.</p></div>
+      <% if (totals.total > 0 || error) { %>
+        <a class="dash-button dash-button--gold" href="/produtos/novo_produto"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Novo produto</a>
+      <% } %>
+    </header>
+
+    <% if (notice) { %><p class="dash-notice products-notice" role="<%= noticeIsError ? 'alert' : 'status' %>"><%- include('partials/dashboard-icon', { name: noticeIsError ? 'alert' : 'check' }) %><%= notice %></p><% } %>
+
+    <% if (error) { %>
+      <section class="dash-error" role="alert" aria-labelledby="products-error-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="products-error-title">Não conseguimos carregar os produtos.</h2><p><%= error %></p></div>
+        <a class="dash-button dash-button--gold" href="<%= listUrl({ pagina: pages.page }) %>">Tentar novamente</a>
+      </section>
+    <% } else if (totals.total === 0) { %>
+      <section class="products-empty products-empty--first" aria-labelledby="products-empty-title" data-dashboard-reveal>
+        <span class="products-empty-icon"><%- include('partials/dashboard-icon', { name: 'box' }) %></span>
+        <h2 id="products-empty-title">Nenhum produto cadastrado.</h2>
+        <p><%= categories.length ? 'Cadastre o primeiro produto com categoria, valor e estoque mínimo. Os saldos aparecerão nesta lista.' : 'Crie uma categoria para organizar os produtos. Depois, cadastre seu primeiro item.' %></p>
+        <a class="dash-button dash-button--gold" href="<%= categories.length ? '/produtos/novo_produto' : '/categorias/cadastro' %>"><%- include('partials/dashboard-icon', { name: 'plus' }) %><%= categories.length ? 'Cadastrar primeiro produto' : 'Criar categoria' %></a>
+        <a class="dash-text-link" href="/painel">Voltar à visão geral <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+      </section>
+    <% } else { %>
+      <div class="products-summary">
+        <p id="products-summary-label">Em todo o cadastro</p>
+        <nav class="products-tabs" aria-labelledby="products-summary-label">
+          <a href="<%= listUrl({ status: 'todos' }) %>" <%- query.status === 'todos' ? 'aria-current="true"' : '' %>>Todos <span><%= number(totals.total) %></span></a>
+          <a href="<%= listUrl({ status: 'repor' }) %>" <%- query.status === 'repor' ? 'aria-current="true"' : '' %>>Abaixo do mínimo <span data-tone="<%= totals.belowMinimum > 0 ? 'warning' : 'neutral' %>"><%= number(totals.belowMinimum) %></span></a>
+          <a href="<%= listUrl({ status: 'sem-saldo' }) %>" <%- query.status === 'sem-saldo' ? 'aria-current="true"' : '' %>>Zerados ou negativos <span data-tone="<%= totals.nonPositive > 0 ? 'negative' : 'neutral' %>"><%= number(totals.nonPositive) %></span></a>
+        </nav>
+      </div>
+
+      <section class="products-list" aria-labelledby="products-list-title" data-dashboard-reveal>
+        <form class="products-filters" action="/produtos/listar" method="get" role="search" aria-label="Filtrar produtos">
+          <input type="hidden" name="status" value="<%= query.status %>">
+          <div class="products-field products-field--search">
+            <label for="products-search">Buscar produto</label>
+            <div class="products-search"><%- include('partials/dashboard-icon', { name: 'search' }) %><input id="products-search" type="search" name="q" value="<%= query.q %>" placeholder="Nome ou ID do produto" maxlength="120"></div>
+          </div>
+          <div class="products-field">
+            <label for="products-category">Categoria</label>
+            <select id="products-category" name="categoria">
+              <option value="">Todas as categorias</option>
+              <% if (query.categoria && !categories.some(category => String(category.id_categoria) === query.categoria)) { %><option value="<%= query.categoria %>" selected>Categoria indisponível</option><% } %>
+              <% categories.forEach(category => { %><option value="<%= category.id_categoria %>" <%- String(category.id_categoria) === query.categoria ? 'selected' : '' %>><%= category.nome %></option><% }); %>
+            </select>
+          </div>
+          <div class="products-field">
+            <label for="products-order">Ordenar por</label>
+            <select id="products-order" name="ordem">
+              <% [['nome', 'Nome: A–Z'], ['nome-desc', 'Nome: Z–A'], ['saldo', 'Menor saldo'], ['valor', 'Maior valor'], ['recentes', 'Últimos cadastrados']].forEach(([value, label]) => { %><option value="<%= value %>" <%- query.ordem === value ? 'selected' : '' %>><%= label %></option><% }); %>
+            </select>
+          </div>
+          <button class="dash-button dash-button--secondary products-filter-button" type="submit"><%- include('partials/dashboard-icon', { name: 'filter' }) %>Filtrar</button>
+        </form>
+        <div class="products-results-heading">
+          <h2 id="products-list-title"><%= filtered ? 'Resultado da busca' : 'Lista de produtos' %><span><%= number(pages.total) %> <%= pages.total === 1 ? 'produto' : 'produtos' %></span></h2>
+          <% if (filtered || query.ordem !== 'nome') { %><a class="dash-text-link" href="/produtos/listar">Limpar filtros</a><% } %>
+        </div>
+
+        <% if (items.length) { %>
+          <table class="products-table" role="table">
+            <caption class="dash-sr-only">Produtos cadastrados: categoria, saldo, estoque mínimo, valor e ações.</caption>
+            <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Produto</th><th scope="col" role="columnheader">Categoria</th><th scope="col" role="columnheader">Saldo atual</th><th scope="col" role="columnheader">Mínimo</th><th scope="col" role="columnheader">Valor cadastrado</th><th scope="col" role="columnheader"><span class="dash-sr-only">Ações</span></th></tr></thead>
+            <tbody role="rowgroup">
+              <% items.forEach(product => {
+                const stock = numeric(product.estoque);
+                const minimum = numeric(product.estoque_minimo);
+                const state = stockState(stock, minimum);
+                const photo = safeImage(product.imagem);
+              %>
+                <tr role="row">
+                  <th scope="row" role="rowheader" class="products-name-cell">
+                    <div class="products-identity">
+                      <span class="products-thumb" data-product-thumb><%- include('partials/dashboard-icon', { name: 'box' }) %><% if (photo) { %><img src="<%= photo %>" alt="" width="48" height="48" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-product-image><% } %></span>
+                      <div><a class="products-name" href="/produtos/alterar/<%= product.id_produto %>"><%= product.nome_produto %></a><small>ID <%= product.id_produto %></small></div>
+                    </div>
+                  </th>
+                  <td role="cell" class="products-category-cell"><span class="products-mobile-label" aria-hidden="true">Categoria</span><span><%= product.nome_categoria || 'Sem categoria' %></span></td>
+                  <td role="cell" class="products-stock-cell"><span class="products-mobile-label" aria-hidden="true">Saldo atual</span><strong data-tone="<%= state.tone %>"><%= number(stock) %></strong><small><%= state.label %></small></td>
+                  <td role="cell" class="products-minimum-cell"><span class="products-mobile-label" aria-hidden="true">Mínimo</span><span><%= number(minimum) %></span></td>
+                  <td role="cell" class="products-price-cell"><span class="products-mobile-label" aria-hidden="true">Valor cadastrado</span><span><%= money(product.valor) %></span></td>
+                  <td role="cell" class="products-actions-cell">
+                    <div class="products-row-actions">
+                      <a class="products-edit" href="/produtos/alterar/<%= product.id_produto %>"><%- include('partials/dashboard-icon', { name: 'edit' }) %>Editar<span class="dash-sr-only"> <%= product.nome_produto %></span></a>
+                      <form action="/produtos/excluir/<%= product.id_produto %>" method="post" data-delete-product data-product-name="<%= product.nome_produto %>" onsubmit="return confirm('Excluir este produto? Esta ação não pode ser desfeita.');">
+                        <button type="submit" class="products-delete"><%- include('partials/dashboard-icon', { name: 'trash' }) %><span>Excluir</span><span class="dash-sr-only"> <%= product.nome_produto %></span></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="products-list-footer">
+            <p>Mostrando <strong><%= number((pages.page - 1) * pages.pageSize + 1) %>–<%= number((pages.page - 1) * pages.pageSize + items.length) %></strong> de <strong><%= number(pages.total) %></strong></p>
+            <% if (pages.totalPages > 1) { %>
+              <nav class="products-pagination" aria-label="Paginação de produtos">
+                <% if (pages.page > 1) { %><a href="<%= listUrl({ pagina: pages.page - 1 }) %>" aria-label="Página anterior"><%- include('partials/dashboard-icon', { name: 'left' }) %></a><% } %>
+                <% currentPages.forEach((page, index) => { %>
+                  <% if (index > 0 && page - currentPages[index - 1] > 1) { %><span aria-hidden="true">…</span><% } %>
+                  <a href="<%= listUrl({ pagina: page }) %>" aria-label="Página <%= page %>" <%- page === pages.page ? 'aria-current="page"' : '' %>><%= page %></a>
+                <% }); %>
+                <% if (pages.page < pages.totalPages) { %><a href="<%= listUrl({ pagina: pages.page + 1 }) %>" aria-label="Próxima página"><%- include('partials/dashboard-icon', { name: 'right' }) %></a><% } %>
+              </nav>
+            <% } %>
+          </div>
+        <% } else { %>
+          <div class="products-empty products-empty--filtered">
+            <span class="products-empty-icon"><%- include('partials/dashboard-icon', { name: 'search' }) %></span>
+            <h3>Nenhum produto encontrado.</h3>
+            <p>Tente outro nome ou ID, ou ajuste os filtros selecionados.</p>
+            <a class="dash-button dash-button--secondary" href="/produtos/listar">Limpar filtros</a>
+          </div>
+        <% } %>
+      </section>
+      <p class="products-stock-note">Para alterar um saldo, registre uma entrada ou saída em <a href="/movimentacoes/nova_movimentacao">Movimentações <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>.</p>
+    <% } %>
+
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+  <dialog class="products-confirm" aria-labelledby="delete-title" aria-describedby="delete-description" data-product-delete-dialog>
+    <span class="products-confirm-icon"><%- include('partials/dashboard-icon', { name: 'trash' }) %></span>
+    <h2 id="delete-title">Excluir este produto?</h2>
+    <p id="delete-description">Você está prestes a excluir <strong data-delete-name></strong>. Esta ação não pode ser desfeita.</p>
+    <div class="products-confirm-actions"><button type="button" class="dash-button dash-button--secondary" data-delete-cancel autofocus>Cancelar</button><button type="button" class="dash-button products-confirm-delete" data-delete-confirm>Excluir produto</button></div>
+  </dialog>
+</div>

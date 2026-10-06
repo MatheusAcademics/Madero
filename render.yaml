@@ -1,0 +1,50 @@
+# ATENÇÃO: APLICAR ESTE BLUEPRINT CRIA RECURSOS PAGOS.
+# Apenas preparar/commitar este arquivo NÃO publica e NÃO contrata nada.
+# Confirme o total apresentado pelo Render ANTES de aprovar a criação.
+# Leia DEPLOY.md, inclusive backup/importação e limitações da demonstração.
+# Planos/documentação conferidos em 2026-10-06: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: madero-estoque
+    runtime: node
+    region: ohio
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: off
+    buildCommand: npm ci
+    startCommand: npm run db:migrate && npm run serve
+    healthCheckPath: /healthz
+    disk:
+      name: madero-uploads
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: madero-db
+          property: connectionString
+      # connectionString é a URL INTERNA, na mesma região e rede privada.
+      # Não reutilize disable para URLs externas pela internet.
+      - key: DB_SSL
+        value: disable
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+
+databases:
+  - name: madero-db
+    databaseName: madero
+    user: madero
+    region: ohio
+    plan: 0.1c-256mb
+    diskSizeGB: 1
+    # Sem aumento automático de cobrança por armazenamento.
+    storageAutoscalingEnabled: false
+    # A aplicação usa a rede privada. Acesso externo começa bloqueado.
+    ipAllowList: []

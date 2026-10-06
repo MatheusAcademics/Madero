@@ -1,0 +1,128 @@
+<%
+  const productRows = Array.isArray(produtos) ? produtos : [];
+  const people = Array.isArray(usuarios) ? usuarios : [];
+  const fields = typeof values === 'object' && values ? values : {};
+  const problems = typeof errors === 'object' && errors ? errors : {};
+  const generalError = typeof formError === 'string' ? formError : '';
+  const loadingError = typeof loadError === 'string' ? loadError : '';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const invalid = key => problems[key] ? 'aria-invalid="true"' : '';
+  const describe = key => key + '-hint' + (problems[key] ? ' ' + key + '-error' : '');
+  const errorLabels = { tipo_movimentacao: 'Tipo de movimentação', id_produto: 'Produto', quantidade: 'Quantidade', data_movimentacao: 'Data da movimentação', id_usuario: 'Responsável', descricao: 'Descrição' };
+  const fieldErrors = Object.entries(problems).filter(([key, message]) => errorLabels[key] && typeof message === 'string' && message);
+  const available = productRows.length > 0 && people.length > 0;
+  const preserveDraft = typeof submitted !== 'undefined' && submitted === true;
+%>
+<div class="dash-shell" data-dashboard data-movement-page>
+  <%- include('partials/stock-header', { activePage: '/movimentacoes/listar', username }) %>
+  <div class="dash-content movement-content" id="movement-content" tabindex="-1">
+    <nav class="movement-breadcrumb" aria-label="Localização"><a href="/movimentacoes/listar"><%- include('partials/dashboard-icon', { name: 'left' }) %>Movimentações</a><span aria-hidden="true">/</span><span aria-current="page">Nova movimentação</span></nav>
+    <header class="movement-heading"><h1>Nova movimentação</h1><p>Registre entradas e saídas de produtos do estoque.</p></header>
+
+    <% if (loadingError) { %>
+      <section class="dash-error" role="alert" aria-labelledby="movement-unavailable-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="movement-unavailable-title">Não foi possível carregar o cadastro.</h2><p><%= loadingError %></p></div>
+        <a class="dash-button dash-button--gold" href="/movimentacoes/nova_movimentacao">Tentar novamente</a>
+      </section>
+    <% } %>
+    <% if (!loadingError && !available) { %>
+      <section class="movement-empty" aria-labelledby="movement-empty-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: productRows.length ? 'users' : 'box' }) %></span>
+        <h2 id="movement-empty-title"><%= productRows.length ? 'Nenhum responsável disponível.' : 'Cadastre um produto primeiro.' %></h2>
+        <p><%= productRows.length ? 'É necessário um usuário cadastrado para identificar o responsável pela movimentação.' : 'Você precisa de um produto cadastrado para registrar uma entrada ou saída.' %></p>
+        <a class="dash-button dash-button--gold" href="<%= productRows.length ? '/usuarios/listar' : '/produtos/listar' %>"><%= productRows.length ? 'Ver usuários' : 'Ir para produtos' %><%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+      </section>
+    <% } %>
+    <% if (available || preserveDraft) { %>
+      <div class="movement-layout">
+        <form class="movement-form" action="/movimentacoes/cadastro" method="post" data-movement-form>
+          <% if (generalError || fieldErrors.length) { %>
+            <div class="movement-error-summary" role="alert" tabindex="-1" data-movement-error-summary>
+              <p><%= generalError || 'Confira os campos indicados antes de salvar.' %></p>
+              <% if (fieldErrors.length) { %><ul><% fieldErrors.forEach(([key, message]) => { %><li><a href="#<%= key === 'tipo_movimentacao' ? 'tipo-entrada' : key %>"><%= errorLabels[key] %>: <%= message %></a></li><% }); %></ul><% } %>
+            </div>
+          <% } %>
+
+          <fieldset class="movement-types">
+            <legend>Tipo de movimentação</legend>
+            <div class="movement-type-options">
+              <label class="movement-type-option">
+                <input type="radio" id="tipo-entrada" name="tipo_movimentacao" value="Entrada" required <%- fields.tipo_movimentacao === 'Entrada' ? 'checked' : '' %> aria-describedby="<%= describe('tipo_movimentacao') %>" <%- invalid('tipo_movimentacao') %> data-movement-type>
+                <span class="movement-type-content"><span class="movement-type-icon movement-type-icon--entry"><%- include('partials/dashboard-icon', { name: 'down' }) %></span><span><strong>Entrada</strong><small>Adiciona ao estoque</small></span></span>
+              </label>
+              <label class="movement-type-option">
+                <input type="radio" id="tipo-saida" name="tipo_movimentacao" value="Saída" required <%- fields.tipo_movimentacao === 'Saída' ? 'checked' : '' %> aria-describedby="<%= describe('tipo_movimentacao') %>" <%- invalid('tipo_movimentacao') %> data-movement-type>
+                <span class="movement-type-content"><span class="movement-type-icon movement-type-icon--exit"><%- include('partials/dashboard-icon', { name: 'up' }) %></span><span><strong>Saída</strong><small>Retira do estoque</small></span></span>
+              </label>
+            </div>
+            <p class="dash-sr-only" id="tipo_movimentacao-hint">Escolha se o produto está entrando ou saindo do estoque.</p>
+            <% if (problems.tipo_movimentacao) { %><p class="movement-field-error" id="tipo_movimentacao-error" data-field-error="tipo_movimentacao"><%= problems.tipo_movimentacao %></p><% } %>
+          </fieldset>
+
+          <div class="movement-fields">
+            <div class="movement-field">
+              <label for="id_produto">Produto</label>
+              <select id="id_produto" name="id_produto" required aria-describedby="<%= describe('id_produto') %>" <%- invalid('id_produto') %> data-movement-product>
+                <option value="">Selecione um produto</option>
+                <% if (fields.id_produto && !productRows.some(product => String(product.id_produto) === String(fields.id_produto))) { %><option value="<%= fields.id_produto %>" selected>Produto indisponível (ID <%= fields.id_produto %>)</option><% } %>
+                <% productRows.forEach(product => { %><option value="<%= product.id_produto %>" data-stock="<%= product.estoque ?? '' %>" data-minimum="<%= product.estoque_minimo ?? '' %>" <%- String(fields.id_produto) === String(product.id_produto) ? 'selected' : '' %>><%= product.nome %> · ID <%= product.id_produto %></option><% }); %>
+              </select>
+              <p class="dash-sr-only" id="id_produto-hint">Selecione o produto que será movimentado.</p>
+              <% if (problems.id_produto) { %><p class="movement-field-error" id="id_produto-error" data-field-error="id_produto"><%= problems.id_produto %></p><% } %>
+            </div>
+            <div class="movement-field">
+              <label for="id_usuario">Responsável</label>
+              <select id="id_usuario" name="id_usuario" required aria-describedby="<%= describe('id_usuario') %>" <%- invalid('id_usuario') %>>
+                <option value="">Selecione um responsável</option>
+                <% if (fields.id_usuario && !people.some(person => String(person.id_usuario) === String(fields.id_usuario))) { %><option value="<%= fields.id_usuario %>" selected>Usuário indisponível (ID <%= fields.id_usuario %>)</option><% } %>
+                <% people.forEach(person => { %><option value="<%= person.id_usuario %>" <%- String(fields.id_usuario) === String(person.id_usuario) ? 'selected' : '' %>><%= person.nome_usuario %></option><% }); %>
+              </select>
+              <p class="dash-sr-only" id="id_usuario-hint">Usuário responsável pelo registro, inicialmente preenchido com sua conta.</p>
+              <% if (problems.id_usuario) { %><p class="movement-field-error" id="id_usuario-error" data-field-error="id_usuario"><%= problems.id_usuario %></p><% } %>
+            </div>
+            <div class="movement-field">
+              <label for="quantidade">Quantidade</label>
+              <input id="quantidade" name="quantidade" type="number" inputmode="decimal" min="0.01" max="9999999999.99" step="0.01" required placeholder="0,00" value="<%= fields.quantidade || '' %>" aria-describedby="<%= describe('quantidade') %>" <%- invalid('quantidade') %> data-movement-quantity>
+              <p class="movement-field-hint" id="quantidade-hint">Informe um valor maior que zero, com até 2 casas decimais.</p>
+              <% if (problems.quantidade) { %><p class="movement-field-error" id="quantidade-error" data-field-error="quantidade"><%= problems.quantidade %></p><% } %>
+            </div>
+            <div class="movement-field">
+              <label for="data_movimentacao">Data da movimentação</label>
+              <input id="data_movimentacao" name="data_movimentacao" type="date" required value="<%= fields.data_movimentacao || '' %>" aria-describedby="<%= describe('data_movimentacao') %>" <%- invalid('data_movimentacao') %>>
+              <p class="dash-sr-only" id="data_movimentacao-hint">Data em que a entrada ou saída aconteceu.</p>
+              <% if (problems.data_movimentacao) { %><p class="movement-field-error" id="data_movimentacao-error" data-field-error="data_movimentacao"><%= problems.data_movimentacao %></p><% } %>
+            </div>
+            <div class="movement-field movement-field--wide">
+              <div class="movement-label-row"><label for="descricao">Descrição</label><span>Opcional</span></div>
+              <textarea id="descricao" name="descricao" rows="3" maxlength="1000" placeholder="Ex.: Recebimento de mercadoria ou uso na cozinha." aria-describedby="<%= describe('descricao') %>" <%- invalid('descricao') %>><%= fields.descricao || '' %></textarea>
+              <p class="movement-field-hint" id="descricao-hint">Adicione uma observação para facilitar a consulta do histórico. Até 1.000 caracteres.</p>
+              <% if (problems.descricao) { %><p class="movement-field-error" id="descricao-error" data-field-error="descricao"><%= problems.descricao %></p><% } %>
+            </div>
+          </div>
+
+          <aside class="movement-preview" aria-labelledby="movement-preview-title" hidden data-preview-panel>
+            <div class="movement-preview-heading"><%- include('partials/dashboard-icon', { name: 'stock' }) %><h2 id="movement-preview-title">Confira o saldo</h2></div>
+            <p class="movement-preview-placeholder" data-preview-placeholder>Selecione um produto para conferir o saldo e a estimativa após a movimentação.</p>
+            <div hidden data-movement-preview aria-live="polite" aria-atomic="true">
+              <p class="movement-preview-product" data-preview-product></p>
+              <dl class="movement-preview-values">
+                <div><dt>Saldo consultado</dt><dd data-preview-current>—</dd></div>
+                <div><dt>Movimentação</dt><dd data-preview-change>—</dd></div>
+                <div class="movement-preview-result"><dt>Saldo previsto</dt><dd data-preview-next>—</dd></div>
+              </dl>
+              <p class="movement-preview-message" data-preview-message></p>
+            </div>
+            <p class="movement-preview-note">A prévia é uma estimativa. O saldo atualizado será calculado ao salvar.</p>
+          </aside>
+
+          <div class="movement-form-actions">
+            <a class="movement-cancel" href="/movimentacoes/listar">Cancelar</a>
+            <button class="dash-button dash-button--gold" type="submit" data-movement-submit <%- loadingError || !available ? 'disabled' : '' %>><span data-movement-submit-label>Salvar movimentação</span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button>
+          </div>
+        </form>
+      </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

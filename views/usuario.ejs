@@ -1,0 +1,87 @@
+<%
+  const items = Array.isArray(usuarios) ? usuarios : [];
+  const query = typeof filters === 'object' && filters ? filters : { q: '', ordem: 'nome' };
+  const pages = typeof pagination === 'object' && pagination ? pagination : { page: 1, pageSize: 20, total: items.length, totalPages: 1 };
+  const totals = typeof summary === 'object' && summary ? summary : null;
+  const error = typeof usersError === 'string' && usersError ? usersError : !totals ? 'Não foi possível consultar os usuários. Tente novamente em instantes.' : '';
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const noticeIsError = typeof noticeType !== 'undefined' && noticeType === 'error';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const ownId = typeof currentUserId !== 'undefined' ? String(currentUserId) : typeof user !== 'undefined' && user ? String(user.id_usuario) : '';
+  const count = value => value !== null && value !== undefined && value !== '' && Number.isSafeInteger(Number(value)) && Number(value) >= 0 ? Number(value) : null;
+  const number = value => count(value) === null ? '—' : new Intl.NumberFormat('pt-BR').format(count(value));
+  const listUrl = changes => {
+    const values = { q: query.q, ordem: query.ordem, ...changes };
+    const entries = Object.entries(values).filter(([key, value]) => value !== '' && value !== null && value !== undefined && !(key === 'ordem' && value === 'nome') && !(key === 'pagina' && value === 1));
+    return '/usuarios/listar' + (entries.length ? '?' + entries.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&') : '');
+  };
+  const currentPages = Array.from(new Set([1, pages.page - 1, pages.page, pages.page + 1, pages.totalPages])).filter(page => page > 0 && page <= pages.totalPages).sort((a, b) => a - b);
+%>
+<div class="dash-shell" data-dashboard data-users>
+  <%- include('partials/stock-header', { activePage: '/usuarios/listar', username }) %>
+  <div class="dash-content users-content" id="users-content" tabindex="-1">
+    <header class="users-heading"><div><h1>Usuários</h1><p>Consulte as contas, atualize os contatos e gerencie o acesso ao estoque.</p></div><a class="dash-button dash-button--gold" href="/usuarios/novo"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Novo usuário</a></header>
+    <% if (notice) { %><p class="dash-notice users-notice <%= noticeIsError ? 'users-notice--error' : '' %>" role="<%= noticeIsError ? 'alert' : 'status' %>"><%- include('partials/dashboard-icon', { name: noticeIsError ? 'alert' : 'check' }) %><span><%= notice %></span></p><% } %>
+    <% if (error) { %>
+      <section class="dash-error" role="alert" aria-labelledby="users-error-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span><div><h2 id="users-error-title">Não conseguimos carregar os usuários.</h2><p><%= error %></p></div>
+        <a class="dash-button dash-button--gold" href="<%= listUrl({ pagina: pages.page }) %>">Tentar novamente</a>
+      </section>
+    <% } else { %>
+      <section class="users-list" aria-labelledby="users-list-title" data-dashboard-reveal>
+        <form class="users-filters" action="/usuarios/listar" method="get" role="search" aria-label="Filtrar usuários">
+          <div class="users-field"><label for="users-search">Buscar usuário</label><div class="users-search"><%- include('partials/dashboard-icon', { name: 'search' }) %><input id="users-search" type="search" name="q" value="<%= query.q %>" placeholder="Nome, usuário, e-mail ou ID" maxlength="120"></div></div>
+          <div class="users-field"><label for="users-order">Ordenar por</label><select id="users-order" name="ordem"><% [['nome', 'Nome: A–Z'], ['usuario', 'Usuário: A–Z'], ['recentes', 'Últimos cadastrados']].forEach(([value, label]) => { %><option value="<%= value %>" <%- query.ordem === value ? 'selected' : '' %>><%= label %></option><% }); %></select></div>
+          <button class="dash-button dash-button--secondary users-filter-button" type="submit"><%- include('partials/dashboard-icon', { name: 'filter' }) %>Filtrar</button>
+        </form>
+        <div class="users-results-heading">
+          <h2 id="users-list-title"><%= query.q ? 'Resultado da busca' : 'Contas cadastradas' %><span><%= number(pages.total) %> <%= pages.total === 1 ? 'usuário' : 'usuários' %><% if (query.q) { %> · <%= number(totals.total) %> no total<% } %></span></h2>
+          <% if (query.q || query.ordem !== 'nome') { %><a class="dash-text-link" href="/usuarios/listar">Limpar filtros</a><% } %>
+        </div>
+        <% if (items.length) { %>
+          <table class="users-table" role="table">
+            <caption class="dash-sr-only">Usuários cadastrados, identificação de acesso, contato e ações.</caption>
+            <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Nome</th><th scope="col" role="columnheader">Usuário</th><th scope="col" role="columnheader">Contato</th><th scope="col" role="columnheader"><span class="dash-sr-only">Ações</span></th></tr></thead>
+            <tbody role="rowgroup">
+              <% items.forEach(account => {
+                const displayName = typeof account.nome === 'string' && account.nome.trim() ? account.nome : 'Nome não informado';
+                const initial = Array.from(displayName.trim())[0].toLocaleUpperCase('pt-BR');
+                const movements = count(account.total_movimentacoes);
+                const own = String(account.id_usuario) === ownId;
+                const id = encodeURIComponent(account.id_usuario);
+              %>
+              <tr role="row">
+                <th scope="row" role="rowheader" class="users-name-cell"><div class="users-identity"><%- include('partials/user-avatar', { name: displayName, photo: account.foto }) %><div><span class="users-name"><%= displayName %></span><% if (own) { %><span class="users-self">Você</span><% } %><small>ID <%= account.id_usuario %></small></div></div></th>
+                <td role="cell" class="users-login-cell"><span class="users-mobile-label" aria-hidden="true">Usuário</span><span><%= account.usuario || 'Não informado' %></span></td>
+                <td role="cell" class="users-contact-cell"><span class="users-mobile-label" aria-hidden="true">Contato</span><span><%= account.email || 'E-mail não informado' %></span><small><%= account.telefone || 'Telefone não informado' %></small></td>
+                <td role="cell" class="users-actions-cell"><div class="users-row-actions">
+                  <a class="users-edit" href="/usuarios/alterar/<%= id %>"><%- include('partials/dashboard-icon', { name: 'edit' }) %>Editar<span class="dash-sr-only"> <%= displayName %></span></a>
+                  <% if (!own && movements === 0) { %>
+                    <form action="/usuarios/excluir/<%= id %>" method="post" data-delete-user data-user-name="<%= displayName %>" onsubmit="return confirm('Excluir este usuário? Esta ação não pode ser desfeita.');"><button type="submit" class="users-delete"><%- include('partials/dashboard-icon', { name: 'trash' }) %>Excluir<span class="dash-sr-only"> <%= displayName %></span></button></form>
+                  <% } else { %><span class="users-in-use"><%= own ? 'Sua conta' : movements === null ? 'Exclusão indisponível' : 'Com histórico' %><span class="dash-sr-only"><%= own ? ': não é possível excluir a conta em uso.' : movements === null ? ': não foi possível verificar as movimentações.' : ': a conta possui movimentações e não pode ser excluída.' %></span></span><% } %>
+                </div></td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="users-list-footer">
+            <p>Mostrando <strong><%= number((pages.page - 1) * pages.pageSize + 1) %>–<%= number((pages.page - 1) * pages.pageSize + items.length) %></strong> de <strong><%= number(pages.total) %></strong></p>
+            <% if (pages.totalPages > 1) { %><nav class="users-pagination" aria-label="Paginação de usuários">
+              <% if (pages.page > 1) { %><a href="<%= listUrl({ pagina: pages.page - 1 }) %>" aria-label="Página anterior"><%- include('partials/dashboard-icon', { name: 'left' }) %></a><% } %>
+              <% currentPages.forEach((page, index) => { %><% if (index > 0 && page - currentPages[index - 1] > 1) { %><span aria-hidden="true">…</span><% } %><a href="<%= listUrl({ pagina: page }) %>" aria-label="Página <%= page %>" <%- page === pages.page ? 'aria-current="page"' : '' %>><%= page %></a><% }); %>
+              <% if (pages.page < pages.totalPages) { %><a href="<%= listUrl({ pagina: pages.page + 1 }) %>" aria-label="Próxima página"><%- include('partials/dashboard-icon', { name: 'right' }) %></a><% } %>
+            </nav><% } %>
+          </div>
+        <% } else { %>
+          <div class="users-empty"><span class="users-empty-icon"><%- include('partials/dashboard-icon', { name: query.q ? 'search' : 'users' }) %></span><h3><%= query.q ? 'Nenhum usuário encontrado.' : 'Nenhum usuário cadastrado.' %></h3><p><%= query.q ? 'Tente outro nome, usuário, e-mail ou ID.' : 'Cadastre uma conta para acessar a área interna.' %></p><a class="dash-button dash-button--secondary" href="<%= query.q ? '/usuarios/listar' : '/usuarios/novo' %>"><%= query.q ? 'Limpar filtros' : 'Cadastrar usuário' %></a></div>
+        <% } %>
+      </section>
+      <p class="users-note"><%- include('partials/dashboard-icon', { name: 'users' }) %><span>Contas com movimentações são mantidas para preservar o histórico. Também não é possível excluir a conta que você está usando.</span></p>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+  <dialog class="users-confirm" aria-labelledby="user-delete-title" aria-describedby="user-delete-description" data-user-delete-dialog>
+    <span class="users-confirm-icon"><%- include('partials/dashboard-icon', { name: 'trash' }) %></span><h2 id="user-delete-title">Excluir este usuário?</h2><p id="user-delete-description">A conta de <strong data-delete-name></strong> será excluída e perderá o acesso. Esta ação não pode ser desfeita.</p>
+    <div class="users-confirm-actions"><button class="dash-button dash-button--secondary" type="button" data-delete-cancel autofocus>Cancelar</button><button class="dash-button users-confirm-delete" type="button" data-delete-confirm>Excluir usuário</button></div>
+  </dialog>
+</div>

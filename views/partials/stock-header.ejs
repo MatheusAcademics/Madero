@@ -1,0 +1,23 @@
+<%
+  const stockNavItems = [
+    ['grid', 'Visão geral', '/painel'], ['box', 'Produtos', '/produtos/listar'],
+    ['stock', 'Saldos de estoque', '/movimentacoes/listar_estoque'], ['transfer', 'Movimentações', '/movimentacoes/listar'],
+    ['layers', 'Categorias', '/categorias/listar'], ['users', 'Usuários', '/usuarios/listar']
+  ];
+  const profile = typeof user === 'object' && user ? user : {};
+  const profileId = /^\d+$/.test(String(profile.id_usuario)) && Number.isSafeInteger(Number(profile.id_usuario)) && Number(profile.id_usuario) > 0 ? String(profile.id_usuario) : '';
+%>
+<header class="dash-header">
+  <div class="dash-brand-group"><a class="dash-brand" href="/painel" aria-label="Madero — visão geral">MADERO</a><span>Gestão de estoque</span></div>
+  <div class="dash-account"><% if (profileId) { %><a class="dash-profile-link" href="/usuarios/alterar/<%= profileId %>" aria-label="Editar meu perfil: <%= username %>"><%- include('user-avatar', { name: profile.nome || username, photo: profile.foto }) %><span class="dash-account-name"><%= username %></span></a><% } else { %><span class="dash-account-name"><%= username %></span><% } %><a class="dash-logout" href="/logout" data-dashboard-logout><span>Sair</span><%- include('dashboard-icon', { name: 'logout' }) %></a></div>
+</header>
+<div class="dash-navigation-bar">
+  <details class="dash-navigation" open data-dashboard-navigation>
+    <summary><%- include('dashboard-icon', { name: 'menu' }) %><span>Menu do estoque</span><span class="dash-menu-mark" aria-hidden="true">+</span></summary>
+    <nav class="dash-navigation__content" aria-label="Principal">
+      <% stockNavItems.forEach(([icon, label, href]) => { %>
+        <a class="dash-nav-link" href="<%= href %>" <%- href === activePage ? 'aria-current="page"' : '' %>><%- include('dashboard-icon', { name: icon }) %><span><%= label %></span></a>
+      <% }); %>
+    </nav>
+  </details>
+</div>

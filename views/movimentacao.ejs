@@ -1,0 +1,162 @@
+<%
+  const records = Array.isArray(movimentacoes) ? movimentacoes : [];
+  const people = typeof usuarios !== 'undefined' && Array.isArray(usuarios) ? usuarios : [];
+  const query = typeof filters === 'object' && filters ? filters : { q: '', tipo: 'todos', usuario: '', de: '', ate: '', ordem: 'recentes' };
+  const pages = typeof pagination === 'object' && pagination ? pagination : { page: 1, pageSize: 20, total: records.length, totalPages: 1 };
+  const totals = typeof summary === 'object' && summary ? summary : null;
+  const error = typeof listError === 'string' ? listError : '';
+  const issues = typeof filterErrors === 'object' && filterErrors ? filterErrors : {};
+  const invalidPeriod = Boolean(issues.de || issues.ate);
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const numeric = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+  const number = value => numeric(value) === null ? '—' : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(numeric(value));
+  const literalDate = value => {
+    if (typeof value !== 'string') return null;
+    const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2}))?$/.exec(value);
+    if (!match || match[1] === '0000') return null;
+    const day = value.slice(0, 10);
+    const parsed = new Date(day + 'T00:00:00.000Z');
+    if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== day) return null;
+    if (match[4] && (Number(match[4]) > 23 || Number(match[5]) > 59 || Number(match[6]) > 59)) return null;
+    return { value, date: match[3] + '/' + match[2] + '/' + match[1], time: match[4] ? match[4] + ':' + match[5] : '' };
+  };
+  const listUrl = changes => {
+    const values = { q: query.q, tipo: query.tipo, usuario: query.usuario, de: query.de, ate: query.ate, ordem: query.ordem, ...changes };
+    const entries = Object.entries(values).filter(([key, value]) => value !== '' && value !== null && value !== undefined && !(key === 'tipo' && value === 'todos') && !(key === 'ordem' && value === 'recentes') && !(key === 'pagina' && value === 1));
+    return '/movimentacoes/listar' + (entries.length ? '?' + entries.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&') : '');
+  };
+  const filtered = Boolean(query.q || query.tipo !== 'todos' || query.usuario || query.de || query.ate);
+  const advancedFilters = Boolean(query.usuario || query.de || query.ate || invalidPeriod);
+  const snapshotDate = typeof geradoEm === 'string' && geradoEm ? new Date(geradoEm) : null;
+  const snapshot = snapshotDate && Number.isFinite(snapshotDate.getTime()) ? snapshotDate.toISOString() : '';
+  const formattedSnapshot = snapshot ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(snapshotDate) : '';
+  const visiblePages = Array.from(new Set([1, pages.page - 1, pages.page, pages.page + 1, pages.totalPages])).filter(page => page > 0 && page <= pages.totalPages).sort((a, b) => a - b);
+  const typeTabs = totals ? [['todos', 'Todas', totals.total], ['entrada', 'Entradas', totals.entries], ['saida', 'Saídas', totals.exits]] : [];
+  if (totals && (totals.other > 0 || query.tipo === 'outros')) typeTabs.push(['outros', 'Outros tipos', totals.other]);
+%>
+<div class="dash-shell" data-dashboard data-movements-page>
+  <%- include('partials/stock-header', { activePage: '/movimentacoes/listar', username }) %>
+  <div class="dash-content history-content" id="movements-content" tabindex="-1">
+    <header class="history-heading">
+      <div><h1>Movimentações</h1><p>Consulte as entradas e saídas registradas no estoque.</p></div>
+      <% if (totals && totals.total > 0) { %><a class="dash-button dash-button--gold" href="/movimentacoes/nova_movimentacao"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Nova movimentação</a><% } %>
+    </header>
+
+    <% if (notice) { %><p class="dash-notice" role="status"><%- include('partials/dashboard-icon', { name: 'check' }) %><%= notice %></p><% } %>
+    <% if (error || !totals) { %>
+      <section class="dash-error" role="alert" aria-labelledby="history-error-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="history-error-title">Não conseguimos carregar as movimentações.</h2><p><%= error || 'Tente atualizar a página em instantes.' %></p></div>
+        <a class="dash-button dash-button--gold" href="<%= listUrl({ pagina: pages.page }) %>">Tentar novamente</a>
+      </section>
+    <% } else if (totals.total === 0 && !invalidPeriod && !filtered) { %>
+      <section class="history-empty history-empty--first" aria-labelledby="history-empty-title" data-dashboard-reveal>
+        <span class="history-empty-icon"><%- include('partials/dashboard-icon', { name: 'transfer' }) %></span>
+        <h2 id="history-empty-title">Nenhuma movimentação registrada.</h2>
+        <p>As entradas e saídas aparecerão aqui com o produto, a data e o responsável por cada registro.</p>
+        <a class="dash-button dash-button--gold" href="/movimentacoes/nova_movimentacao"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Registrar primeira movimentação</a>
+        <a class="dash-text-link" href="/movimentacoes/listar_estoque">Consultar estoque atual <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+      </section>
+    <% } else { %>
+      <div class="history-summary">
+        <div class="history-summary-heading"><p id="history-summary-label">Todo o histórico</p><a class="history-refresh" href="<%= listUrl({ pagina: pages.page }) %>"><%- include('partials/dashboard-icon', { name: 'refresh' }) %>Atualizar histórico</a></div>
+        <nav class="history-type-tabs" aria-labelledby="history-summary-label">
+          <% typeTabs.forEach(([value, label, count]) => { %><a href="<%= listUrl({ tipo: value }) %>" <%- query.tipo === value ? 'aria-current="true"' : '' %>><%= label %><span><%= number(count) %></span></a><% }); %>
+        </nav>
+      </div>
+
+      <section class="history-list" aria-labelledby="history-list-title" data-dashboard-reveal>
+        <form class="history-filters" action="/movimentacoes/listar" method="get" role="search" aria-label="Filtrar movimentações">
+          <input type="hidden" name="tipo" value="<%= query.tipo %>">
+          <div class="history-primary-filters">
+            <div class="history-field history-field--search">
+              <label for="history-query">Buscar no histórico</label>
+              <div class="history-search"><%- include('partials/dashboard-icon', { name: 'search' }) %><input id="history-query" type="search" name="q" value="<%= query.q %>" maxlength="120" placeholder="Produto, descrição ou ID"></div>
+            </div>
+            <div class="history-field">
+              <label for="history-order">Ordenar por</label>
+              <select id="history-order" name="ordem"><option value="recentes" <%- query.ordem === 'recentes' ? 'selected' : '' %>>Mais recentes</option><option value="antigas" <%- query.ordem === 'antigas' ? 'selected' : '' %>>Mais antigas</option></select>
+            </div>
+            <button class="dash-button dash-button--secondary history-filter-button" type="submit"><%- include('partials/dashboard-icon', { name: 'filter' }) %>Filtrar</button>
+          </div>
+          <details class="history-advanced" <%- advancedFilters ? 'open' : '' %>>
+            <summary><%- include('partials/dashboard-icon', { name: 'calendar' }) %><span>Período e responsável</span><% if (advancedFilters && !invalidPeriod) { %><small>Filtros ativos</small><% } %><span class="history-details-mark" aria-hidden="true">+</span></summary>
+            <div class="history-advanced-fields">
+              <div class="history-field">
+                <label for="history-from">De</label>
+                <input id="history-from" type="date" name="de" value="<%= query.de %>" <%- issues.de ? 'aria-invalid="true" aria-describedby="history-from-error"' : '' %>>
+                <% if (issues.de) { %><p class="history-field-error" id="history-from-error"><%= issues.de %></p><% } %>
+              </div>
+              <div class="history-field">
+                <label for="history-to">Até</label>
+                <input id="history-to" type="date" name="ate" value="<%= query.ate %>" <%- issues.ate ? 'aria-invalid="true" aria-describedby="history-to-error"' : '' %>>
+                <% if (issues.ate) { %><p class="history-field-error" id="history-to-error"><%= issues.ate %></p><% } %>
+              </div>
+              <div class="history-field">
+                <label for="history-user">Responsável</label>
+                <select id="history-user" name="usuario">
+                  <option value="">Todos os responsáveis</option>
+                  <% if (query.usuario && !people.some(person => String(person.id_usuario) === query.usuario)) { %><option value="<%= query.usuario %>" selected>Responsável indisponível</option><% } %>
+                  <% people.forEach(person => { %><option value="<%= person.id_usuario %>" <%- String(person.id_usuario) === query.usuario ? 'selected' : '' %>><%= person.nome_usuario %></option><% }); %>
+                </select>
+              </div>
+            </div>
+            <p class="history-period-hint">O período inclui o dia inicial e o dia final.</p>
+          </details>
+        </form>
+        <div class="history-results-heading">
+          <h2 id="history-list-title"><%= filtered ? 'Resultado da consulta' : 'Histórico de movimentações' %><% if (!invalidPeriod) { %><span><%= number(pages.total) %> <%= pages.total === 1 ? 'registro' : 'registros' %></span><% } %></h2>
+          <% if (filtered || query.ordem !== 'recentes') { %><a class="dash-text-link" href="/movimentacoes/listar">Limpar filtros</a><% } %>
+        </div>
+
+        <% if (invalidPeriod) { %>
+          <div class="history-filter-error" role="alert"><%- include('partials/dashboard-icon', { name: 'alert' }) %><p>Confira as datas informadas e aplique os filtros novamente. A consulta ainda não foi realizada.</p></div>
+        <% } else if (records.length) { %>
+          <table class="history-table" role="table">
+            <caption class="dash-sr-only">Histórico: produto, tipo, variação no saldo, data informada, responsável e descrição de cada movimentação.</caption>
+            <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Produto</th><th scope="col" role="columnheader">Tipo</th><th scope="col" role="columnheader">Variação no saldo</th><th scope="col" role="columnheader">Data informada</th><th scope="col" role="columnheader">Responsável</th><th scope="col" role="columnheader">Descrição</th></tr></thead>
+            <tbody role="rowgroup">
+              <% records.forEach(record => {
+                const incoming = record.tipo_movimentacao === 'Entrada';
+                const outgoing = record.tipo_movimentacao === 'Saída';
+                const amount = numeric(record.quantidade);
+                const effect = amount === null || (!incoming && !outgoing) ? null : (incoming ? amount : -amount);
+                const tone = effect === null || effect === 0 ? 'neutral' : effect > 0 ? 'positive' : 'negative';
+                const displayQuantity = effect === null ? number(amount) : (effect < 0 ? '−' : effect > 0 ? '+' : '') + number(Math.abs(effect));
+                const date = literalDate(record.data_movimentacao);
+                const description = typeof record.descricao === 'string' ? record.descricao.trim() : '';
+              %>
+                <tr role="row">
+                  <th scope="row" role="rowheader" class="history-product-cell"><strong><%= record.nome_produto || 'Produto indisponível' %></strong><small>Registro #<%= record.id_movimentacao %><% if (record.id_produto) { %> <span aria-hidden="true">·</span> Produto #<%= record.id_produto %><% } %></small></th>
+                  <td role="cell" class="history-type-cell"><span class="history-mobile-label" aria-hidden="true">Tipo</span><span class="history-type"><%- include('partials/dashboard-icon', { name: incoming ? 'down' : outgoing ? 'up' : 'transfer' }) %><%= record.tipo_movimentacao || 'Tipo não informado' %></span></td>
+                  <td role="cell" class="history-quantity-cell"><span class="history-mobile-label" aria-hidden="true">Variação no saldo</span><strong data-tone="<%= tone %>"><%= displayQuantity %></strong><% if (!incoming && !outgoing) { %><small>Efeito não identificado</small><% } %><% if (amount === null) { %><small>Quantidade indisponível</small><% } %></td>
+                  <td role="cell" class="history-date-cell"><span class="history-mobile-label" aria-hidden="true">Data informada</span><% if (date) { %><time datetime="<%= date.value %>"><span><%= date.date %></span><% if (date.time) { %><small><%= date.time %></small><% } %></time><% } else { %><span>Data indisponível</span><% } %></td>
+                  <td role="cell" class="history-user-cell"><span class="history-mobile-label" aria-hidden="true">Responsável</span><span><%= record.nome_usuario || 'Responsável indisponível' %></span></td>
+                  <td role="cell" class="history-description-cell"><span class="history-mobile-label" aria-hidden="true">Descrição</span>
+                    <% if (description.length > 90) { %><details class="history-description"><summary>Ver descrição <span class="history-details-mark" aria-hidden="true">+</span><span class="dash-sr-only">do registro <%= record.id_movimentacao %></span></summary><p><%= description %></p></details><% } else { %><p class="<%= description ? '' : 'history-muted' %>"><%= description || 'Sem observação' %></p><% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="history-list-footer">
+            <p>Mostrando <strong><%= number((pages.page - 1) * pages.pageSize + 1) %>–<%= number((pages.page - 1) * pages.pageSize + records.length) %></strong> de <strong><%= number(pages.total) %></strong></p>
+            <% if (pages.totalPages > 1) { %><nav class="history-pagination" aria-label="Paginação das movimentações">
+              <% if (pages.page > 1) { %><a href="<%= listUrl({ pagina: pages.page - 1 }) %>" aria-label="Página anterior"><%- include('partials/dashboard-icon', { name: 'left' }) %></a><% } %>
+              <% visiblePages.forEach((page, index) => { %><% if (index > 0 && page - visiblePages[index - 1] > 1) { %><span aria-hidden="true">…</span><% } %><a href="<%= listUrl({ pagina: page }) %>" aria-label="Página <%= page %>" <%- page === pages.page ? 'aria-current="page"' : '' %>><%= page %></a><% }); %>
+              <% if (pages.page < pages.totalPages) { %><a href="<%= listUrl({ pagina: pages.page + 1 }) %>" aria-label="Próxima página"><%- include('partials/dashboard-icon', { name: 'right' }) %></a><% } %>
+            </nav><% } %>
+          </div>
+        <% } else { %>
+          <div class="history-empty history-empty--filtered"><span class="history-empty-icon"><%- include('partials/dashboard-icon', { name: 'search' }) %></span><h3>Nenhuma movimentação encontrada.</h3><p>Altere a busca, o período ou os outros filtros para consultar mais registros.</p><a class="dash-button dash-button--secondary" href="/movimentacoes/listar">Limpar filtros</a></div>
+        <% } %>
+      </section>
+      <div class="history-notes">
+        <p>Os sinais + e − indicam aumento e redução no saldo. O tipo e a quantidade originais não são alterados.</p>
+        <% if (snapshot) { %><p>Consultado em <time datetime="<%= snapshot %>" data-dashboard-date><%= formattedSnapshot %></time>.</p><% } %>
+      </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

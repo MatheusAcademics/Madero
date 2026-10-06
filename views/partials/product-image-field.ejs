@@ -1,0 +1,17 @@
+<div class="product-create-field">
+  <div class="product-image-upload">
+    <label for="imagem_arquivo">Escolher imagem do computador ou celular</label>
+    <input id="imagem_arquivo" name="imagem_arquivo" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" aria-describedby="<%= describe('imagem_arquivo') %> imagem-feedback" <%- invalid('imagem_arquivo') %>>
+    <p class="product-create-hint" id="imagem_arquivo-hint">JPG, PNG ou WebP · até 5 MB e 25 megapixels. O arquivo escolhido substitui o link abaixo.</p>
+    <% if (problems.imagem_arquivo) { %><p class="product-create-field-error" id="imagem_arquivo-error" data-field-error="imagem_arquivo"><%= problems.imagem_arquivo %></p><% } %>
+    <% if (typeof uploadNotice === 'string' && uploadNotice) { %><p class="product-image-notice" data-upload-notice role="status"><%= uploadNotice %></p><% } %>
+    <div class="product-image-selection" data-upload-selection hidden><p data-upload-filename></p><button type="button" data-upload-clear>Cancelar escolha</button></div>
+  </div>
+  <div class="product-image-divider"><span>ou use um link direto</span></div>
+  <label for="imagem">Endereço da imagem</label>
+  <input id="imagem" name="imagem" type="text" inputmode="url" value="<%= fields.imagem ?? '' %>" maxlength="2048" autocomplete="off" spellcheck="false" placeholder="https://exemplo.com/foto.jpg" aria-describedby="<%= describe('imagem') %>" <%- invalid('imagem') %>>
+  <p class="product-create-hint" id="imagem-hint">Use “Copiar endereço da imagem” sobre a foto, não o endereço da página ou da receita. Também aceita caminhos do site, como /img/produto.jpg. Deixe ambos os campos vazios para ficar sem imagem.</p>
+  <% if (problems.imagem) { %><p class="product-create-field-error" id="imagem-error" data-field-error="imagem"><%= problems.imagem %></p><% } %>
+  <p class="product-image-feedback" id="imagem-feedback" data-upload-feedback role="status" aria-live="polite"></p>
+  <div class="product-image-inline-preview" data-upload-preview hidden><img alt="Imagem escolhida para o produto" data-upload-preview-image referrerpolicy="no-referrer"></div>
+</div>

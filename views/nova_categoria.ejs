@@ -1,0 +1,75 @@
+<%
+  const categoryName = typeof nome === 'string' ? nome : '';
+  const nameError = typeof fieldError === 'string' ? fieldError : '';
+  const saveError = typeof formError === 'string' ? formError : '';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const editing = typeof isEditing !== 'undefined' && isEditing === true;
+  const missing = typeof notFound !== 'undefined' && notFound === true;
+  const loadingError = typeof loadError === 'string' ? loadError : '';
+  const categoryId = typeof id_categoria !== 'undefined' ? String(id_categoria) : '';
+  const title = editing ? 'Editar categoria' : 'Nova categoria';
+%>
+<div class="dash-shell" data-dashboard>
+  <%- include('partials/stock-header', { activePage: '/categorias/listar', username }) %>
+  <div class="dash-content category-content" id="category-content" tabindex="-1">
+    <nav class="category-breadcrumb" aria-label="Localização">
+      <a href="/categorias/listar"><%- include('partials/dashboard-icon', { name: 'left' }) %>Categorias</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page"><%= title %></span>
+    </nav>
+    <header class="category-heading">
+      <h1><%= title %></h1>
+      <p><%= editing ? 'Atualize o nome sem alterar os produtos vinculados à categoria.' : 'Organize os produtos por tipo para facilitar a consulta do estoque.' %></p>
+    </header>
+
+    <% if (missing || loadingError) { %>
+      <section class="dash-error" role="alert" aria-labelledby="category-unavailable-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="category-unavailable-title"><%= missing ? 'Categoria não encontrada.' : 'Categoria indisponível.' %></h2><p><%= missing ? 'Ela pode ter sido excluída. Volte à lista para escolher outra categoria.' : loadingError %></p></div>
+        <a class="dash-button dash-button--secondary" href="/categorias/listar">Voltar para categorias</a>
+      </section>
+    <% } else { %>
+    <div class="category-layout">
+      <section class="category-panel" aria-labelledby="category-details-title" data-dashboard-reveal>
+        <div class="category-panel-heading">
+          <span class="category-panel-icon"><%- include('partials/dashboard-icon', { name: 'layers' }) %></span>
+          <div><h2 id="category-details-title">Informações da categoria</h2><p>Defina como ela aparecerá nos produtos.</p></div>
+        </div>
+        <form class="category-form" action="<%= editing ? '/categorias/alterar/' + encodeURIComponent(categoryId) : '/categorias/cadastro' %>" method="post" data-category-form>
+          <% if (saveError) { %>
+            <div class="category-error-summary" role="alert" tabindex="-1" data-category-save-error>
+              <%- include('partials/dashboard-icon', { name: 'alert' }) %>
+              <p><%= saveError %></p>
+            </div>
+          <% } %>
+          <div class="category-label-row"><label for="category-name">Nome da categoria</label><span>Obrigatório</span></div>
+          <input type="text" id="category-name" name="nome" value="<%= categoryName %>" placeholder="Ex.: Ingredientes" maxlength="100" required autocomplete="off" aria-describedby="category-name-hint<%= nameError ? ' category-name-error' : '' %>" <%- nameError ? 'aria-invalid="true"' : '' %> data-category-name>
+          <p class="category-field-hint" id="category-name-hint">Use um nome fácil de identificar, com até 100 caracteres.</p>
+          <% if (nameError) { %><p class="category-field-error" id="category-name-error" role="alert" data-category-name-error><%= nameError %></p><% } %>
+          <div class="category-form-actions">
+            <a class="category-cancel" href="/categorias/listar">Cancelar</a>
+            <button type="submit" class="dash-button dash-button--gold" data-category-submit><span data-category-submit-label><%= editing ? 'Salvar alterações' : 'Cadastrar categoria' %></span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button>
+          </div>
+        </form>
+      </section>
+      <aside class="category-guidance" aria-labelledby="category-guide-title">
+        <% if (editing) { %>
+        <h2 id="category-guide-title">O que muda?</h2>
+        <p>O novo nome aparece nos produtos que já usam esta categoria. Seus saldos e movimentações continuam iguais.</p>
+        <p class="category-next-step">Categoria ID <%= categoryId %>. Para reorganizar os grupos, altere a categoria diretamente na edição de cada produto.</p>
+        <% } else { %>
+        <h2 id="category-guide-title">Como organizar?</h2>
+        <p>Agrupe produtos do mesmo tipo. Algumas ideias para o seu estoque:</p>
+        <ul class="category-examples">
+          <li><span>Ingredientes</span><small>Pães, carnes e queijos</small></li>
+          <li><span>Bebidas</span><small>Águas, sucos e refrigerantes</small></li>
+          <li><span>Embalagens</span><small>Caixas, sacolas e copos</small></li>
+        </ul>
+        <p class="category-next-step">Depois de salvar, você poderá selecionar a categoria ao cadastrar ou editar um produto.</p>
+        <% } %>
+      </aside>
+    </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>

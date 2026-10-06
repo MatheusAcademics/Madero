@@ -1,0 +1,6 @@
+<%
+  const avatarName = typeof name === 'string' && name.trim() ? name.trim() : 'Usuário';
+  const avatarInitials = avatarName.split(/\s+/).filter(Boolean).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase('pt-BR');
+  const avatarSource = typeof photo === 'string' && /^\/uploads\/avatars\/[a-f0-9-]{36}\.webp$/i.test(photo) ? photo : '';
+%>
+<span class="user-avatar" aria-hidden="true"><span data-avatar-initials><%= avatarInitials %></span><% if (avatarSource) { %><img src="<%= avatarSource %>" alt="" width="44" height="44" decoding="async" data-avatar-image><% } %></span>

@@ -1,0 +1,163 @@
+<%
+  const items = Array.isArray(categorias) ? categorias : [];
+  const query = typeof filters === 'object' && filters ? filters : { q: '', status: 'todas', ordem: 'nome' };
+  const pages = typeof pagination === 'object' && pagination ? pagination : { page: 1, pageSize: 20, total: items.length, totalPages: 1 };
+  const hasSummary = typeof summary === 'object' && summary !== null;
+  const totals = hasSummary ? summary : { total: 0, withProducts: 0, withoutProducts: 0 };
+  const error = typeof categoriesError === 'string' && categoriesError ? categoriesError : !hasSummary ? 'Não foi possível consultar as categorias. Tente novamente em instantes.' : '';
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const noticeIsError = typeof noticeType !== 'undefined' && noticeType === 'error';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const count = value => value !== null && value !== undefined && value !== '' && Number.isSafeInteger(Number(value)) && Number(value) >= 0 ? Number(value) : null;
+  const number = value => count(value) === null ? '—' : new Intl.NumberFormat('pt-BR').format(count(value));
+  const listUrl = changes => {
+    const values = { q: query.q, status: query.status, ordem: query.ordem, ...changes };
+    const entries = Object.entries(values).filter(([key, value]) => value !== '' && value !== null && value !== undefined && !(key === 'status' && value === 'todas') && !(key === 'ordem' && value === 'nome') && !(key === 'pagina' && value === 1));
+    return '/categorias/listar' + (entries.length ? '?' + entries.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&') : '');
+  };
+  const filtered = Boolean(query.q || query.status !== 'todas');
+  const currentPages = Array.from(new Set([1, pages.page - 1, pages.page, pages.page + 1, pages.totalPages])).filter(page => page > 0 && page <= pages.totalPages).sort((a, b) => a - b);
+%>
+<div class="dash-shell" data-dashboard data-categories>
+  <%- include('partials/stock-header', { activePage: '/categorias/listar', username }) %>
+  <div class="dash-content categories-content" id="categories-content" tabindex="-1">
+    <header class="categories-heading">
+      <div><h1>Categorias</h1><p>Organize os produtos e encontre cada grupo com facilidade.</p></div>
+      <% if (totals.total > 0 || error || filtered || query.ordem !== 'nome') { %>
+        <a class="dash-button dash-button--gold" href="/categorias/cadastro"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Nova categoria</a>
+      <% } %>
+    </header>
+
+    <% if (notice) { %>
+      <p class="dash-notice categories-notice <%= noticeIsError ? 'categories-notice--error' : '' %>" role="<%= noticeIsError ? 'alert' : 'status' %>">
+        <%- include('partials/dashboard-icon', { name: noticeIsError ? 'alert' : 'check' }) %><span><%= notice %></span>
+      </p>
+    <% } %>
+
+    <% if (error) { %>
+      <section class="dash-error" role="alert" aria-labelledby="categories-error-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="categories-error-title">Não conseguimos carregar as categorias.</h2><p><%= error %></p></div>
+        <a class="dash-button dash-button--gold" href="<%= listUrl({ pagina: pages.page }) %>">Tentar novamente</a>
+      </section>
+    <% } else if (totals.total === 0 && !filtered && query.ordem === 'nome') { %>
+      <section class="categories-empty categories-empty--first" aria-labelledby="categories-empty-title" data-dashboard-reveal>
+        <span class="categories-empty-icon"><%- include('partials/dashboard-icon', { name: 'layers' }) %></span>
+        <h2 id="categories-empty-title">Comece organizando seus produtos.</h2>
+        <p>Crie sua primeira categoria, como Bebidas ou Ingredientes. Depois, escolha esse grupo ao cadastrar um produto.</p>
+        <a class="dash-button dash-button--gold" href="/categorias/cadastro"><%- include('partials/dashboard-icon', { name: 'plus' }) %>Criar primeira categoria</a>
+        <a class="dash-text-link" href="/produtos/listar">Ir para produtos <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+      </section>
+    <% } else { %>
+      <div class="categories-summary">
+        <p id="categories-summary-label">Em todo o cadastro</p>
+        <nav class="categories-tabs" aria-labelledby="categories-summary-label">
+          <% [['todas', 'Todas', totals.total], ['com-produtos', 'Com produtos', totals.withProducts], ['sem-produtos', 'Sem produtos', totals.withoutProducts]].forEach(([status, label, total]) => { %>
+            <a href="<%= listUrl({ status }) %>" <%- query.status === status ? 'aria-current="true"' : '' %>><%= label %><span><%= number(total) %></span></a>
+          <% }); %>
+        </nav>
+      </div>
+
+      <section class="categories-list" aria-labelledby="categories-list-title" data-dashboard-reveal>
+        <form class="categories-filters" action="/categorias/listar" method="get" role="search" aria-label="Filtrar categorias">
+          <input type="hidden" name="status" value="<%= query.status %>">
+          <div class="categories-field">
+            <label for="categories-search">Buscar categoria</label>
+            <div class="categories-search"><%- include('partials/dashboard-icon', { name: 'search' }) %><input id="categories-search" type="search" name="q" value="<%= query.q %>" placeholder="Nome ou ID da categoria" maxlength="120"></div>
+          </div>
+          <div class="categories-field">
+            <label for="categories-order">Ordenar por</label>
+            <select id="categories-order" name="ordem">
+              <% [['nome', 'Nome: A–Z'], ['nome-desc', 'Nome: Z–A'], ['produtos', 'Mais produtos'], ['recentes', 'Últimas cadastradas']].forEach(([value, label]) => { %>
+                <option value="<%= value %>" <%- query.ordem === value ? 'selected' : '' %>><%= label %></option>
+              <% }); %>
+            </select>
+          </div>
+          <button class="dash-button dash-button--secondary categories-filter-button" type="submit"><%- include('partials/dashboard-icon', { name: 'filter' }) %>Filtrar</button>
+        </form>
+        <div class="categories-results-heading">
+          <h2 id="categories-list-title"><%= filtered ? 'Resultado da busca' : 'Lista de categorias' %><span><%= number(pages.total) %> <%= pages.total === 1 ? 'categoria' : 'categorias' %></span></h2>
+          <% if (filtered || query.ordem !== 'nome') { %><a class="dash-text-link" href="/categorias/listar">Limpar filtros</a><% } %>
+        </div>
+
+        <% if (items.length) { %>
+          <table class="categories-table" role="table">
+            <caption class="dash-sr-only">Categorias cadastradas, quantidade de produtos vinculados e ações.</caption>
+            <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Categoria</th><th scope="col" role="columnheader">Produtos vinculados</th><th scope="col" role="columnheader"><span class="dash-sr-only">Ações</span></th></tr></thead>
+            <tbody role="rowgroup">
+              <% items.forEach(category => {
+                const products = count(category.total_produtos);
+                const categoryName = typeof category.nome === 'string' && category.nome.trim() ? category.nome : 'Categoria sem nome';
+                const id = encodeURIComponent(category.id_categoria);
+              %>
+                <tr role="row">
+                  <th scope="row" role="rowheader" class="categories-name-cell">
+                    <div class="categories-identity">
+                      <span class="categories-symbol"><%- include('partials/dashboard-icon', { name: 'layers' }) %></span>
+                      <div><span class="categories-name"><%= categoryName %></span><small>ID <%= category.id_categoria %></small></div>
+                    </div>
+                  </th>
+                  <td role="cell" class="categories-products-cell">
+                    <span class="categories-mobile-label" aria-hidden="true">Produtos vinculados</span>
+                    <% if (products > 0) { %>
+                      <a class="categories-products-link" href="/produtos/listar?categoria=<%= id %>">
+                        <span><strong><%= number(products) %></strong> <%= products === 1 ? 'produto' : 'produtos' %></span>
+                        <%- include('partials/dashboard-icon', { name: 'arrow' }) %>
+                        <span class="dash-sr-only"> — Ver produtos de <%= categoryName %></span>
+                      </a>
+                    <% } else { %>
+                      <span class="categories-no-products"><%= products === 0 ? 'Nenhum produto' : 'Contagem indisponível' %></span>
+                    <% } %>
+                  </td>
+                  <td role="cell" class="categories-actions-cell">
+                    <div class="categories-row-actions">
+                      <a class="categories-edit" href="/categorias/alterar/<%= id %>"><%- include('partials/dashboard-icon', { name: 'edit' }) %>Editar<span class="dash-sr-only"> <%= categoryName %></span></a>
+                      <% if (products === 0) { %>
+                        <form action="/categorias/excluir/<%= id %>" method="post" data-delete-category data-category-name="<%= categoryName %>" onsubmit="return confirm('Excluir esta categoria? Esta ação não pode ser desfeita.');">
+                          <button type="submit" class="categories-delete"><%- include('partials/dashboard-icon', { name: 'trash' }) %>Excluir<span class="dash-sr-only"> <%= categoryName %></span></button>
+                        </form>
+                      <% } else { %>
+                        <span class="categories-in-use"><%= products === null ? 'Exclusão indisponível' : 'Em uso' %><span class="dash-sr-only"><%= products === null ? ': não foi possível verificar os produtos vinculados.' : ': para excluir, primeiro transfira os produtos para outra categoria.' %></span></span>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="categories-list-footer">
+            <p>Mostrando <strong><%= number((pages.page - 1) * pages.pageSize + 1) %>–<%= number((pages.page - 1) * pages.pageSize + items.length) %></strong> de <strong><%= number(pages.total) %></strong></p>
+            <% if (pages.totalPages > 1) { %>
+              <nav class="categories-pagination" aria-label="Paginação de categorias">
+                <% if (pages.page > 1) { %><a href="<%= listUrl({ pagina: pages.page - 1 }) %>" aria-label="Página anterior"><%- include('partials/dashboard-icon', { name: 'left' }) %></a><% } %>
+                <% currentPages.forEach((page, index) => { %>
+                  <% if (index > 0 && page - currentPages[index - 1] > 1) { %><span aria-hidden="true">…</span><% } %>
+                  <a href="<%= listUrl({ pagina: page }) %>" aria-label="Página <%= page %>" <%- page === pages.page ? 'aria-current="page"' : '' %>><%= page %></a>
+                <% }); %>
+                <% if (pages.page < pages.totalPages) { %><a href="<%= listUrl({ pagina: pages.page + 1 }) %>" aria-label="Próxima página"><%- include('partials/dashboard-icon', { name: 'right' }) %></a><% } %>
+              </nav>
+            <% } %>
+          </div>
+        <% } else { %>
+          <div class="categories-empty categories-empty--filtered">
+            <span class="categories-empty-icon"><%- include('partials/dashboard-icon', { name: 'search' }) %></span>
+            <h3>Nenhuma categoria encontrada.</h3>
+            <p>Tente outro nome ou ID, ou ajuste o filtro de produtos.</p>
+            <a class="dash-button dash-button--secondary" href="/categorias/listar">Limpar filtros</a>
+          </div>
+        <% } %>
+      </section>
+      <% if (items.some(category => count(category.total_produtos) > 0)) { %>
+        <p class="categories-note"><%- include('partials/dashboard-icon', { name: 'layers' }) %><span>Uma categoria em uso não pode ser excluída. Para liberá-la, abra seus produtos e escolha outra categoria em <strong>Editar</strong>.</span></p>
+      <% } %>
+    <% } %>
+
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+  <dialog class="categories-confirm" aria-labelledby="category-delete-title" aria-describedby="category-delete-description" data-category-delete-dialog>
+    <span class="categories-confirm-icon"><%- include('partials/dashboard-icon', { name: 'trash' }) %></span>
+    <h2 id="category-delete-title">Excluir esta categoria?</h2>
+    <p id="category-delete-description">A categoria <strong data-delete-name></strong> será excluída. Esta ação não pode ser desfeita.</p>
+    <div class="categories-confirm-actions"><button type="button" class="dash-button dash-button--secondary" data-delete-cancel autofocus>Cancelar</button><button type="button" class="dash-button categories-confirm-delete" data-delete-confirm>Excluir categoria</button></div>
+  </dialog>
+</div>

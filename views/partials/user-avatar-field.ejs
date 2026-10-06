@@ -1,0 +1,20 @@
+<%
+  const currentPhoto = typeof avatarPhoto === 'string' && /^\/uploads\/avatars\/[a-f0-9-]{36}\.webp$/i.test(avatarPhoto) ? avatarPhoto : '';
+  const avatarProblem = typeof avatarError === 'string' ? avatarError : '';
+  const avatarNotice = typeof uploadNotice === 'string' ? uploadNotice : '';
+  const removeChecked = typeof avatarRemove !== 'undefined' && String(avatarRemove) === '1';
+  const compactAvatar = typeof avatarCompact !== 'undefined' && avatarCompact === true;
+  const avatarFormId = typeof avatarForm === 'string' ? avatarForm : '';
+%>
+<div class="avatar-field<%= compactAvatar ? ' avatar-field--compact' : '' %>" data-avatar-field data-avatar-current="<%= currentPhoto %>">
+  <span class="user-avatar avatar-field-preview" aria-hidden="true"><span data-avatar-initials><%= typeof avatarName === 'string' && avatarName.trim() ? Array.from(avatarName.trim())[0].toLocaleUpperCase('pt-BR') : 'U' %></span><img alt="" width="64" height="64" data-avatar-preview <%- currentPhoto && !removeChecked ? '' : 'hidden' %> <% if (currentPhoto && !removeChecked) { %>src="<%= currentPhoto %>"<% } %>></span>
+  <div class="avatar-field-controls">
+    <label class="avatar-field-title" for="foto_arquivo">Foto de perfil <span>Opcional</span></label>
+    <input id="foto_arquivo" name="foto_arquivo" type="file" <% if (avatarFormId) { %>form="<%= avatarFormId %>"<% } %> accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" aria-describedby="foto_arquivo-hint foto_arquivo-feedback<%= avatarProblem ? ' foto_arquivo-error' : '' %>" <%- avatarProblem ? 'aria-invalid="true"' : '' %>>
+    <p class="avatar-field-hint" id="foto_arquivo-hint">JPG, PNG ou WebP · até 5 MB.</p>
+    <div class="avatar-field-actions"><button type="button" data-avatar-cancel aria-label="Cancelar escolha da foto" hidden><%= compactAvatar ? '×' : 'Cancelar escolha' %></button><% if (currentPhoto) { %><label class="avatar-field-remove"><input type="checkbox" name="remover_foto" value="1" <% if (avatarFormId) { %>form="<%= avatarFormId %>"<% } %> <%- removeChecked ? 'checked' : '' %>>Remover foto atual</label><% } %></div>
+    <% if (avatarProblem) { %><p class="avatar-field-error" id="foto_arquivo-error" data-field-error="foto_arquivo"><%= avatarProblem %></p><% } %>
+    <% if (avatarNotice) { %><p class="avatar-field-notice" data-avatar-notice role="status"><%= avatarNotice %></p><% } %>
+    <p class="avatar-field-feedback" id="foto_arquivo-feedback" role="status" aria-live="polite" data-avatar-feedback></p>
+  </div>
+</div>

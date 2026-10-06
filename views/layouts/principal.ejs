@@ -1,0 +1,234 @@
+<%
+    const resolvedMainClass = typeof mainClass !== 'undefined' ? mainClass : '';
+    const isLandingPage = resolvedMainClass === 'main-index';
+    const isCardapioPage = resolvedMainClass === 'main-cardapio';
+    const isAboutPage = resolvedMainClass === 'main-sobre';
+    const isLoginPage = resolvedMainClass === 'main-login';
+    const isDashboardPage = resolvedMainClass === 'main-dashboard';
+    const isProductsPage = resolvedMainClass === 'main-products';
+    const isProductFormPage = resolvedMainClass === 'main-product-form';
+    const isProductEditPage = resolvedMainClass === 'main-product-edit';
+    const isUsersPage = resolvedMainClass === 'main-users';
+    const isUserFormPage = resolvedMainClass === 'main-user-form';
+    const isCategoriesPage = resolvedMainClass === 'main-categories';
+    const isCategoryFormPage = resolvedMainClass === 'main-category-form';
+    const isCategoryEditPage = resolvedMainClass === 'main-category-edit';
+    const isMovementFormPage = resolvedMainClass === 'main-movement-form';
+    const isStockPage = resolvedMainClass === 'main-stock';
+    const isMovementsPage = resolvedMainClass === 'main-movements';
+    const isStockWorkspace = isDashboardPage || isProductsPage || isProductFormPage || isProductEditPage || isUsersPage || isUserFormPage || isCategoriesPage || isCategoryFormPage || isCategoryEditPage || isMovementFormPage || isStockPage || isMovementsPage;
+    const workspaceContentId = isUsersPage ? '#users-content' : isUserFormPage ? '#user-content' : isProductEditPage || isProductFormPage ? '#product-content' : isCategoryEditPage ? '#category-content' : isCategoriesPage ? '#categories-content' : isMovementsPage ? '#movements-content' : (isStockPage ? '#stock-content' : (isMovementFormPage ? '#movement-content' : (isCategoryFormPage ? '#category-content' : (isProductsPage ? '#products-content' : '#dashboard-content'))));
+    const isRegisterPage = isLoginPage && typeof authPage !== 'undefined' && authPage === 'register';
+    const isPublicExperience = isLandingPage || isCardapioPage || isAboutPage;
+    const publicNavigationId = isLandingPage ? 'landing-navigation' : (isCardapioPage ? 'cardapio-navigation' : 'sobre-navigation');
+    const pageTitle = isUsersPage ? 'Usuários — Madero' : isUserFormPage ? (typeof isEditing !== 'undefined' && isEditing ? 'Editar usuário — Madero' : 'Novo usuário — Madero') : isProductEditPage ? 'Editar produto — Madero' : isCategoryEditPage ? 'Editar categoria — Madero' : isProductFormPage ? 'Novo produto — Madero' : isCategoriesPage ? 'Categorias — Madero' : isMovementsPage ? 'Movimentações — Madero' : isStockPage ? 'Estoque atual — Madero' : isMovementFormPage ? 'Nova movimentação — Madero' : isCategoryFormPage ? 'Nova categoria — Madero' : isLandingPage
+        ? 'Madero — O hambúrguer faz o mundo melhor'
+        : (isCardapioPage ? 'Cardápios — Madero' : (isAboutPage ? 'Nossa história — Madero' : (isLoginPage ? (isRegisterPage ? 'Criar conta — Madero' : 'Entrar — Madero') : (isProductsPage ? 'Produtos — Madero' : (isDashboardPage ? 'Visão geral — Madero' : 'MADERO')))));
+%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080806">
+    <% if (isLandingPage) { %>
+        <meta name="description" content="Madero — comida de verdade, feita com qualidade, do campo ao prato.">
+        <link rel="preload" as="image" href="/img/loja.jpg" fetchpriority="high">
+        <script>
+            (() => {
+                const root = document.documentElement;
+                let savedMotion = null;
+                try { savedMotion = localStorage.getItem('madero-motion'); } catch (_) {}
+                root.classList.add('has-js');
+                root.classList.toggle('motion-reduced', savedMotion === 'reduced');
+                window.__landingMotionFallback = window.setTimeout(() => {
+                    root.classList.remove('has-js');
+                }, 3200);
+            })();
+        </script>
+    <% } else if (isCardapioPage) { %>
+        <meta name="description" content="Escolha sua experiência Madero e acesse os cardápios Steakhouse, Container e Madero + Jerônimo.">
+        <link rel="preload" as="image" href="/img/cardapio.png" fetchpriority="high">
+        <script>
+            (() => {
+                const root = document.documentElement;
+                let savedMotion = null;
+                try { savedMotion = localStorage.getItem('madero-motion'); } catch (_) {}
+                const systemPrefersLessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                root.classList.add('has-js');
+                root.classList.toggle('motion-reduced', savedMotion === 'reduced' || (savedMotion === null && systemPrefersLessMotion));
+                window.__menuMotionFallback = window.setTimeout(() => {
+                    root.classList.remove('has-js');
+                }, 3000);
+            })();
+        </script>
+    <% } else if (isAboutPage) { %>
+        <meta name="description" content="Conheça a trajetória do Madero: de Curitiba para o Brasil, com comida de verdade e atenção a cada detalhe.">
+        <link rel="preload" as="image" href="/img/sobre/chef-ambiente.jpg" fetchpriority="high">
+        <script>
+            (() => {
+                const root = document.documentElement;
+                let savedMotion = null;
+                try { savedMotion = localStorage.getItem('madero-motion'); } catch (_) {}
+                const systemPrefersLessMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                root.classList.add('has-js');
+                root.classList.toggle('motion-reduced', savedMotion === 'reduced' || (savedMotion === null && systemPrefersLessMotion));
+                window.__aboutMotionFallback = window.setTimeout(() => {
+                    root.classList.remove('has-js');
+                }, 3000);
+            })();
+        </script>
+    <% } %>
+    <link rel="icon" type="image/png" href="/img/madero_logo_preta.png">
+    <% if (isLoginPage) { %>
+        <meta name="description" content="<%= isRegisterPage ? 'Crie sua conta para acessar a área interna do Madero.' : 'Acesse sua conta na área interna do Madero.' %>">
+        <meta name="robots" content="noindex, nofollow">
+        <link rel="preload" as="image" href="<%= isRegisterPage ? '/img/comida_madero.jpg' : '/img/sobre/aeroporto-brasilia-salao.jpg' %>">
+        <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/gfs-didot">
+        <link rel="stylesheet" href="/css/login.css?v=access-10">
+    <% } else if (isStockWorkspace) { %>
+        <meta name="robots" content="noindex, nofollow">
+        <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/gfs-didot">
+        <% if (isDashboardPage) { %><link rel="preload" as="image" href="/img/comida_madero.jpg" fetchpriority="high"><% } %>
+        <link rel="stylesheet" href="/css/dashboard.css?v=status-4">
+        <% if (isProductsPage) { %><link rel="stylesheet" href="/css/products.css?v=list-1"><% } %>
+        <% if (isProductFormPage || isProductEditPage || isUserFormPage) { %><link rel="stylesheet" href="/css/product-form.css?v=upload-3"><% } %>
+        <% if (isUsersPage) { %><link rel="stylesheet" href="/css/users.css?v=list-1"><% } %>
+        <% if (isUserFormPage) { %><link rel="stylesheet" href="/css/user-form.css?v=form-1"><% } %>
+        <% if (isCategoriesPage) { %><link rel="stylesheet" href="/css/categories.css?v=list-1"><% } %>
+        <% if (isCategoryFormPage || isCategoryEditPage) { %><link rel="stylesheet" href="/css/category-form.css?v=forms-2"><% } %>
+        <% if (isMovementFormPage) { %><link rel="stylesheet" href="/css/movement-form.css?v=create-1"><% } %>
+        <% if (isStockPage) { %><link rel="stylesheet" href="/css/stock.css?v=list-1"><% } %>
+        <% if (isMovementsPage) { %><link rel="stylesheet" href="/css/movements-list.css?v=history-1"><% } %>
+    <% } else { %>
+        <link rel="stylesheet" href="/css/style.css">
+    <% } %>
+    <% if (isLandingPage) { %>
+        <link rel="stylesheet" href="/css/landing.css?v=fluid-2">
+    <% } else if (isCardapioPage) { %>
+        <link rel="stylesheet" href="/css/cardapio.css?v=mobile-2">
+    <% } else if (isAboutPage) { %>
+        <link rel="stylesheet" href="/css/sobre.css?v=mobile-2">
+    <% } %>
+    <% if (isPublicExperience) { %>
+        <link rel="stylesheet" href="/css/public-footer.css">
+    <% } %>
+    <% if (isStockWorkspace || isRegisterPage) { %><link rel="stylesheet" href="/css/avatar.css?v=photo-1"><% } %>
+    <title><%= pageTitle %></title>
+</head>
+<body class="<%= isStockWorkspace && !isDashboardPage ? 'main-dashboard ' + resolvedMainClass : resolvedMainClass %>">
+    <% if (isPublicExperience || isLoginPage || isStockWorkspace) { %>
+        <a class="skip-link" href="<%= isStockWorkspace ? workspaceContentId : (isLoginPage ? '#login-form' : '#conteudo') %>"><%= isLoginPage ? (isRegisterPage ? 'Ir para o formulário de cadastro' : 'Ir para o formulário de login') : 'Pular para o conteúdo' %></a>
+    <% } %>
+
+    <div class="container-principal">
+        <% if (!isLoginPage && !isStockWorkspace) { %>
+        <header class="header-main" data-site-header>
+            <div class="header-content">
+                <nav class="nav-menu" aria-label="Navegação principal">
+                    <div class="nav-logo">
+                        <% if (isPublicExperience) { %>
+                            <a class="nav-brand" href="/" aria-label="Madero — página inicial">MADERO</a>
+                        <% } else { %>
+                            <h2><a class="nav-brand" href="/" aria-label="Madero — página inicial">MADERO</a></h2>
+                        <% } %>
+                    </div>
+
+                    <% if (isPublicExperience) { %>
+                        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="<%= publicNavigationId %>" aria-label="Abrir menu">
+                            <span></span>
+                            <span></span>
+                        </button>
+                    <% } %>
+
+                    <ul class="nav-links" <%- isPublicExperience ? `id="${publicNavigationId}"` : '' %>>
+                        <li><a href="/" class="nav-link" <%- isLandingPage ? 'aria-current="page"' : '' %>>Home</a></li>
+                        <% if (!isLoggedIn) { %>
+                            <li><a href="/cardapio" class="nav-link" <%- isCardapioPage ? 'aria-current="page"' : '' %>>Cardápio</a></li>
+                            <li><a href="/sobre" class="nav-link" <%- isAboutPage ? 'aria-current="page"' : '' %>>Sobre nós</a></li>
+                        <% } %>
+
+                        <% if (isLoggedIn) { %>
+                            <li><a href="/usuarios/listar" class="nav-link">Usuários</a></li>
+                            <li><a href="/categorias/listar" class="nav-link">Categorias</a></li>
+                            <li><a href="/produtos/listar" class="nav-link">Armazém</a></li>
+                            <li><a href="/movimentacoes/listar" class="nav-link">Movimentações</a></li>
+                            <li><a href="/movimentacoes/listar_estoque" class="nav-link">Estoque</a></li>
+                            <li><span class="nav-link">Olá,&nbsp;<%= user.usuario %></span></li>
+                            <li>
+                                <a href="/logout" class="nav-link" onclick="return confirm('Tem certeza que deseja sair?')">Sair</a>
+                            </li>
+                        <% } else { %>
+                            <li><a href="/usuarios/login" class="nav-link nav-login">Login</a></li>
+                        <% } %>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+        <% } %>
+
+        <main id="conteudo" class="main-content <%= resolvedMainClass %>" tabindex="-1">
+            <%- body %>
+        </main>
+    </div>
+
+    <% if (!isPublicExperience && !isLoginPage && !isStockWorkspace) { %>
+        <footer>&copy; MONKCODERS</footer>
+    <% } %>
+
+    <script>
+        (() => {
+            const header = document.querySelector('[data-site-header]');
+            if (!header) return;
+            if (document.body.classList.contains('main-index') || document.body.classList.contains('main-cardapio') || document.body.classList.contains('main-sobre')) return;
+
+            let lastScroll = window.scrollY;
+            let ticking = false;
+
+            const updateHeader = () => {
+                const currentScroll = window.scrollY;
+                const navigationLocked = document.body.classList.contains('menu-open') || header.contains(document.activeElement);
+                header.classList.toggle('is-scrolled', currentScroll > 24);
+
+                if (!navigationLocked && currentScroll > lastScroll && currentScroll > 100) {
+                    header.classList.add('escondido');
+                } else {
+                    header.classList.remove('escondido');
+                }
+
+                lastScroll = Math.max(currentScroll, 0);
+                ticking = false;
+            };
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(updateHeader);
+                    ticking = true;
+                }
+            }, { passive: true });
+        })();
+    </script>
+    <% if (isStockWorkspace || isRegisterPage) { %><script src="/js/avatar.js?v=photo-1"></script><% } %>
+    <% if (isLandingPage) { %>
+        <script src="/js/landing.js"></script>
+    <% } else if (isCardapioPage) { %>
+        <script src="/js/cardapio.js?v=mobile-2"></script>
+    <% } else if (isAboutPage) { %>
+        <script src="/js/sobre.js?v=mobile-2"></script>
+    <% } else if (isLoginPage) { %>
+        <script src="/js/login.js?v=access-8"></script>
+    <% } else if (isStockWorkspace) { %>
+        <script src="/js/dashboard.js?v=workspace-3"></script>
+        <% if (isProductsPage) { %><script src="/js/products.js?v=list-1"></script><% } %>
+        <% if (isProductFormPage || isProductEditPage) { %><script src="/js/product-image.js?v=upload-1"></script><% } %>
+        <% if (isProductFormPage) { %><script src="/js/product-form.js?v=upload-2"></script><% } %>
+        <% if (isProductEditPage) { %><script src="/js/product-edit.js?v=upload-2"></script><% } %>
+        <% if (isUsersPage) { %><script src="/js/users.js?v=list-1"></script><% } %>
+        <% if (isUserFormPage) { %><script src="/js/user-form.js?v=form-1"></script><% } %>
+        <% if (isCategoriesPage) { %><script src="/js/categories.js?v=list-1"></script><% } %>
+        <% if (isCategoryFormPage || isCategoryEditPage) { %><script src="/js/category-form.js?v=create-1"></script><% } %>
+        <% if (isMovementFormPage) { %><script src="/js/movement-form.js?v=create-1"></script><% } %>
+    <% } %>
+</body>
+</html>

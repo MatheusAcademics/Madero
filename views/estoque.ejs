@@ -1,0 +1,152 @@
+<%
+  const items = Array.isArray(produtos) ? produtos : [];
+  const categories = typeof categorias !== 'undefined' && Array.isArray(categorias) ? categorias : [];
+  const query = typeof filters === 'object' && filters ? filters : { q: '', categoria: '', status: 'todos', ordem: 'nome' };
+  const pages = typeof pagination === 'object' && pagination ? pagination : { page: 1, pageSize: 20, total: items.length, totalPages: 1 };
+  const totals = typeof summary === 'object' && summary ? summary : null;
+  const error = typeof stockError === 'string' ? stockError : '';
+  const notice = typeof mensagem === 'string' ? mensagem : '';
+  const username = typeof user !== 'undefined' && user && typeof user.usuario === 'string' ? user.usuario : 'Equipe';
+  const numeric = value => value === null || value === undefined || value === '' || !Number.isFinite(Number(value)) ? null : Number(value);
+  const number = value => numeric(value) === null ? '—' : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(numeric(value));
+  const safeImage = value => typeof value === 'string' && (/^https?:\/\//i.test(value) || /^\/(?!\/|\\)/.test(value)) && !/[\u0000-\u001f]/.test(value) ? value : '';
+  const stockState = (stock, minimum) => stock === null ? { label: 'Saldo indisponível', tone: 'neutral' }
+    : stock < 0 ? { label: 'Saldo negativo', tone: 'negative' }
+    : stock === 0 ? { label: 'Sem estoque', tone: 'negative' }
+    : minimum === null ? { label: 'Mínimo não definido', tone: 'neutral' }
+    : stock < minimum ? { label: 'Abaixo do mínimo', tone: 'warning' }
+    : { label: 'Mínimo atendido', tone: 'positive' };
+  const listUrl = changes => {
+    const values = { q: query.q, categoria: query.categoria, status: query.status, ordem: query.ordem, ...changes };
+    const entries = Object.entries(values).filter(([key, value]) => value !== '' && value !== null && value !== undefined && !(key === 'status' && value === 'todos') && !(key === 'ordem' && value === 'nome') && !(key === 'pagina' && value === 1));
+    return '/movimentacoes/listar_estoque' + (entries.length ? '?' + entries.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&') : '');
+  };
+  const filtered = Boolean(query.q || query.categoria || query.status !== 'todos');
+  const snapshotDate = typeof geradoEm === 'string' && geradoEm ? new Date(geradoEm) : null;
+  const snapshot = snapshotDate && Number.isFinite(snapshotDate.getTime()) ? snapshotDate.toISOString() : '';
+  const formattedSnapshot = snapshot ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(snapshotDate) : '';
+  const visiblePages = Array.from(new Set([1, pages.page - 1, pages.page, pages.page + 1, pages.totalPages])).filter(page => page > 0 && page <= pages.totalPages).sort((a, b) => a - b);
+%>
+<div class="dash-shell" data-dashboard data-stock-page>
+  <%- include('partials/stock-header', { activePage: '/movimentacoes/listar_estoque', username }) %>
+  <div class="dash-content stock-content" id="stock-content" tabindex="-1">
+    <header class="stock-heading">
+      <div><h1>Estoque atual</h1><p>Confira os saldos e identifique o que precisa de reposição.</p></div>
+      <% if (totals && totals.total > 0) { %><a class="dash-button dash-button--gold" href="/movimentacoes/nova_movimentacao"><%- include('partials/dashboard-icon', { name: 'transfer' }) %>Registrar entrada ou saída</a><% } %>
+    </header>
+    <% if (notice) { %><p class="dash-notice" role="status"><%- include('partials/dashboard-icon', { name: 'check' }) %><%= notice %></p><% } %>
+
+    <% if (error || !totals) { %>
+      <section class="dash-error" role="alert" aria-labelledby="stock-error-title">
+        <span class="dash-empty-icon"><%- include('partials/dashboard-icon', { name: 'alert' }) %></span>
+        <div><h2 id="stock-error-title">Não conseguimos carregar o estoque.</h2><p><%= error || 'Tente atualizar a página em instantes.' %></p></div>
+        <a class="dash-button dash-button--gold" href="<%= listUrl({ pagina: pages.page }) %>">Tentar novamente</a>
+      </section>
+    <% } else if (totals.total === 0) { %>
+      <section class="stock-empty stock-empty--first" aria-labelledby="stock-empty-title" data-dashboard-reveal>
+        <span class="stock-empty-icon"><%- include('partials/dashboard-icon', { name: 'box' }) %></span>
+        <h2 id="stock-empty-title">Nenhum produto no estoque.</h2>
+        <p><%= categories.length ? 'Cadastre o primeiro produto e defina o estoque mínimo. Os saldos e avisos de reposição aparecerão aqui.' : 'Crie uma categoria e depois cadastre os produtos para começar a acompanhar os saldos.' %></p>
+        <a class="dash-button dash-button--gold" href="<%= categories.length ? '/produtos/novo_produto' : '/categorias/cadastro' %>"><%- include('partials/dashboard-icon', { name: 'plus' }) %><%= categories.length ? 'Cadastrar primeiro produto' : 'Criar categoria' %></a>
+        <a class="dash-text-link" href="/painel">Voltar à visão geral <%- include('partials/dashboard-icon', { name: 'arrow' }) %></a>
+      </section>
+    <% } else { %>
+      <div class="stock-summary">
+        <div class="stock-summary-heading">
+          <p id="stock-summary-label">Em todo o estoque</p>
+          <a class="stock-refresh" href="<%= listUrl({ pagina: pages.page }) %>"><%- include('partials/dashboard-icon', { name: 'refresh' }) %>Atualizar saldos</a>
+        </div>
+        <nav class="stock-status-tabs" aria-labelledby="stock-summary-label">
+          <% [
+            ['todos', 'Todos', totals.total, 'neutral'],
+            ['repor', 'Abaixo do mínimo', totals.belowMinimum, totals.belowMinimum > 0 ? 'warning' : 'neutral'],
+            ['zerado', 'Zerados', totals.zero, totals.zero > 0 ? 'negative' : 'neutral'],
+            ['negativo', 'Negativos', totals.negative, totals.negative > 0 ? 'negative' : 'neutral']
+          ].forEach(([value, label, count, tone]) => { %>
+            <a href="<%= listUrl({ status: value }) %>" <%- query.status === value ? 'aria-current="true"' : '' %>><%= label %><span data-tone="<%= tone %>"><%= number(count) %></span></a>
+          <% }); %>
+        </nav>
+      </div>
+
+      <section class="stock-list" aria-labelledby="stock-list-title" data-dashboard-reveal>
+        <form class="stock-filters" action="/movimentacoes/listar_estoque" method="get" role="search" aria-label="Filtrar estoque">
+          <input type="hidden" name="status" value="<%= query.status %>">
+          <div class="stock-field stock-field--search">
+            <label for="stock-query">Buscar produto</label>
+            <div class="stock-search"><%- include('partials/dashboard-icon', { name: 'search' }) %><input id="stock-query" type="search" name="q" value="<%= query.q %>" maxlength="120" placeholder="Nome ou ID do produto"></div>
+          </div>
+          <div class="stock-field">
+            <label for="stock-category">Categoria</label>
+            <select id="stock-category" name="categoria">
+              <option value="">Todas as categorias</option>
+              <% if (query.categoria && !categories.some(category => String(category.id_categoria) === query.categoria)) { %><option value="<%= query.categoria %>" selected>Categoria indisponível</option><% } %>
+              <% categories.forEach(category => { %><option value="<%= category.id_categoria %>" <%- String(category.id_categoria) === query.categoria ? 'selected' : '' %>><%= category.nome %></option><% }); %>
+            </select>
+          </div>
+          <div class="stock-field">
+            <label for="stock-order">Ordenar por</label>
+            <select id="stock-order" name="ordem">
+              <% [['nome', 'Nome: A–Z'], ['saldo', 'Menor saldo'], ['saldo-desc', 'Maior saldo'], ['reposicao', 'Maior falta para o mínimo']].forEach(([value, label]) => { %><option value="<%= value %>" <%- query.ordem === value ? 'selected' : '' %>><%= label %></option><% }); %>
+            </select>
+          </div>
+          <button class="dash-button dash-button--secondary stock-filter-button" type="submit"><%- include('partials/dashboard-icon', { name: 'filter' }) %>Filtrar</button>
+        </form>
+
+        <div class="stock-results-heading">
+          <h2 id="stock-list-title"><%= filtered ? 'Resultado da consulta' : 'Saldos dos produtos' %><span><%= number(pages.total) %> <%= pages.total === 1 ? 'produto' : 'produtos' %></span></h2>
+          <% if (filtered || query.ordem !== 'nome') { %><a class="dash-text-link" href="/movimentacoes/listar_estoque">Limpar filtros</a><% } %>
+        </div>
+
+        <% if (items.length) { %>
+          <table class="stock-table" role="table">
+            <caption class="dash-sr-only">Saldo atual, estoque mínimo cadastrado e quantidade que falta para atingir o mínimo de cada produto.</caption>
+            <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Produto</th><th scope="col" role="columnheader">Saldo atual</th><th scope="col" role="columnheader">Mínimo cadastrado</th><th scope="col" role="columnheader">Falta para o mínimo</th><th scope="col" role="columnheader"><span class="dash-sr-only">Ação</span></th></tr></thead>
+            <tbody role="rowgroup">
+              <% items.forEach(product => {
+                const stock = numeric(product.estoque);
+                const minimum = numeric(product.estoque_minimo);
+                const state = stockState(stock, minimum);
+                const shortage = stock === null || minimum === null ? null : Math.max(0, Math.round(minimum * 100) - Math.round(stock * 100)) / 100;
+                const photo = safeImage(product.imagem);
+              %>
+                <tr role="row">
+                  <th scope="row" role="rowheader" class="stock-product-cell">
+                    <div class="stock-product">
+                      <span class="stock-thumb" data-product-thumb><%- include('partials/dashboard-icon', { name: 'box' }) %><% if (photo) { %><img src="<%= photo %>" alt="" width="44" height="44" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-product-image><% } %></span>
+                      <div><strong><%= product.nome %></strong><small><%= product.nome_categoria || 'Sem categoria' %> <span aria-hidden="true">·</span> ID <%= product.id_produto %></small></div>
+                    </div>
+                  </th>
+                  <td role="cell" class="stock-balance-cell"><span class="stock-mobile-label" aria-hidden="true">Saldo atual</span><strong data-tone="<%= state.tone %>"><%= number(stock) %></strong><small><%= state.label %></small></td>
+                  <td role="cell" class="stock-minimum-cell"><span class="stock-mobile-label" aria-hidden="true">Mínimo cadastrado</span><span><%= number(minimum) %></span></td>
+                  <td role="cell" class="stock-shortage-cell"><span class="stock-mobile-label" aria-hidden="true">Falta para o mínimo</span><strong data-tone="<%= shortage > 0 ? (stock <= 0 ? 'negative' : 'warning') : 'neutral' %>"><%= number(shortage) %></strong></td>
+                  <td role="cell" class="stock-action-cell"><a class="stock-row-action" href="/movimentacoes/nova_movimentacao?produto=<%= encodeURIComponent(product.id_produto) %>"><%- include('partials/dashboard-icon', { name: 'transfer' }) %>Movimentar<span class="dash-sr-only"> <%= product.nome %></span></a></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+          <div class="stock-list-footer">
+            <p>Mostrando <strong><%= number((pages.page - 1) * pages.pageSize + 1) %>–<%= number((pages.page - 1) * pages.pageSize + items.length) %></strong> de <strong><%= number(pages.total) %></strong></p>
+            <% if (pages.totalPages > 1) { %>
+              <nav class="stock-pagination" aria-label="Paginação do estoque">
+                <% if (pages.page > 1) { %><a href="<%= listUrl({ pagina: pages.page - 1 }) %>" aria-label="Página anterior"><%- include('partials/dashboard-icon', { name: 'left' }) %></a><% } %>
+                <% visiblePages.forEach((page, index) => { %>
+                  <% if (index > 0 && page - visiblePages[index - 1] > 1) { %><span aria-hidden="true">…</span><% } %>
+                  <a href="<%= listUrl({ pagina: page }) %>" aria-label="Página <%= page %>" <%- page === pages.page ? 'aria-current="page"' : '' %>><%= page %></a>
+                <% }); %>
+                <% if (pages.page < pages.totalPages) { %><a href="<%= listUrl({ pagina: pages.page + 1 }) %>" aria-label="Próxima página"><%- include('partials/dashboard-icon', { name: 'right' }) %></a><% } %>
+              </nav>
+            <% } %>
+          </div>
+        <% } else { %>
+          <div class="stock-empty stock-empty--filtered"><span class="stock-empty-icon"><%- include('partials/dashboard-icon', { name: 'search' }) %></span><h3>Nenhum produto encontrado.</h3><p>Altere a busca ou os filtros para consultar outros produtos.</p><a class="dash-button dash-button--secondary" href="/movimentacoes/listar_estoque">Limpar filtros</a></div>
+        <% } %>
+      </section>
+      <div class="stock-notes">
+        <p>Falta para o mínimo: diferença entre o mínimo cadastrado e o saldo atual, quando há falta.</p>
+        <% if (snapshot) { %><p>Consultado em <time datetime="<%= snapshot %>" data-dashboard-date><%= formattedSnapshot %></time>.</p><% } %>
+        <p>Para alterar um saldo, registre uma entrada ou saída. Esta tela é somente de consulta.</p>
+      </div>
+    <% } %>
+    <footer class="dash-footer"><span>Madero · Área interna</span><span><%= new Date().getFullYear() %> · MONKCODERS</span></footer>
+  </div>
+</div>
