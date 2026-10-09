@@ -5,6 +5,7 @@ const expressLayouts = require('express-ejs-layouts');
 const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const { loadRuntimeConfig, prepareUploadStorage, checkUploadStorage } = require('./lib/runtime-config');
+const { createRequestSecurity } = require('./lib/request-security');
 const config = loadRuntimeConfig();
 const pool = require('./conexao');
 const rota_usuario = require('./routes/usuarios');
@@ -63,6 +64,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: config.cookie
 }));
+
+app.use(createRequestSecurity(config));
 
 app.use((req, res, next) => {
     res.locals.isLoggedIn = !!req.session.user;

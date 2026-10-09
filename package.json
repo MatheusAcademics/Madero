@@ -6,8 +6,13 @@
     "test": "node --test tests/*.test.cjs",
     "start": "node --watch app.js",
     "serve": "node app.js",
+    "db:migrate": "node scripts/migrate.cjs",
+    "release:pack": "node scripts/package-release.cjs",
     "demo:images": "node scripts/download-demo-images.cjs",
     "demo:seed": "node scripts/seed-demo.cjs"
+  },
+  "engines": {
+    "node": ">=24 <25"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +25,7 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-ejs-layouts": "^2.5.1",
+    "express-rate-limit": "^8.7.1",
     "express-session": "^1.18.2",
     "multer": "^2.4.0",
     "pg": "^8.16.3",

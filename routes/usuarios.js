@@ -106,7 +106,7 @@ router.post('/login', async (req, res) => {
 
         return res.redirect('/');
     } catch (err) {
-        console.error(err);
+        console.error('Não foi possível concluir o login.');
         return renderLogin(res, 500, {
             mensagem_erro: 'Não foi possível entrar agora. Tente novamente em instantes.',
             usuario_digitado: usuarioDigitado

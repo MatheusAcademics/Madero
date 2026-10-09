@@ -25,21 +25,23 @@ async function fixture(t) {
 
 async function harness(t, overrides = {}) {
     const uploadDir = await fixture(t);
-    const config = runtime.loadRuntimeConfig({ NODE_ENV: overrides.production === false ? 'development' : 'production',
-        SESSION_SECRET: 'runtime-tests-use-isolated-fixture-only'.repeat(2), UPLOAD_DIR: uploadDir });
-    const calls = { queries: [], store: null, sessions: 0, logs: [] };
+    const config = { ...runtime.loadRuntimeConfig({ NODE_ENV: overrides.production === false ? 'development' : 'production',
+        SESSION_SECRET: 'runtime-tests-use-isolated-fixture-only'.repeat(2), UPLOAD_DIR: uploadDir }),
+        port: 0, host: '127.0.0.1' };
+    const calls = { queries: [], store: null, sessions: 0, logs: [], poolClosed: 0, storeClosed: 0 };
     const pool = { query: async sql => {
         calls.queries.push(sql);
         if (overrides.databaseUnavailable) throw new Error('private database details must not be exposed');
         return { rows: [{ '?column?': 1 }] };
-    }, end: async () => {} };
+    }, end: async () => { calls.poolClosed++; } };
     class FakePgStore extends session.MemoryStore {
         constructor(options) { super(); calls.store = options; }
-        async close() {}
+        async close() { calls.storeClosed++; }
     }
     const routes = express.Router();
     routes.get('/test-session', (req, res) => { req.session.user = { id_usuario: 1 }; res.send('ok'); });
     routes.get('/test-error', (req, res, next) => next(new Error('password=private-test-marker')));
+    routes.post('/test-write', (req, res) => res.status(201).send('created'));
     const appModule = { exports: {} };
     const appSource = await fs.readFile(path.join(__dirname, '..', 'app.js'), 'utf8');
     const isolatedRequire = name => {
@@ -53,19 +55,56 @@ async function harness(t, overrides = {}) {
         if (name === './lib/request-security') return require('../lib/request-security');
         return require(name);
     };
+    const signalHandlers = new Map();
+    const processFixture = { env: {}, once(name, handler) { signalHandlers.set(name, handler); }, exit() {} };
     vm.runInNewContext(appSource, { module: appModule, exports: appModule.exports, require: isolatedRequire,
-        __dirname: path.join(__dirname, '..'), process: { env: {}, once() {}, exit() {} },
+        __dirname: path.join(__dirname, '..'), process: processFixture,
         console: { log: (...args) => calls.logs.push(args), error: (...args) => calls.logs.push(args) }, setTimeout, clearTimeout });
     const app = appModule.exports;
     // Importing the module must not start a server or query the database.
     assert.equal(calls.queries.length, 0);
     assert.equal(typeof app.start, 'function');
-    const server = await new Promise(resolve => {
+    const server = overrides.start ? await app.start() : await new Promise(resolve => {
         const value = app.listen(0, '127.0.0.1', () => resolve(value));
     });
-    t.after(() => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
-    return { app, calls, uploadDir, url: 'http://127.0.0.1:' + server.address().port };
+    t.after(() => new Promise(resolve => {
+        if (!server.listening) return resolve();
+        server.close(resolve);
+        server.closeAllConnections();
+    }));
+    return { app, calls, uploadDir, server, signalHandlers, processFixture,
+        url: 'http://127.0.0.1:' + server.address().port };
 }
+
+test('runtime app: startup checks the existing session table and shutdown closes resources exactly once', async t => {
+    const { calls, server, signalHandlers, processFixture } = await harness(t, { start: true });
+    assert.deepEqual(calls.queries, ['SELECT 1', 'SELECT sid FROM public.user_sessions LIMIT 0']);
+    assert.equal(server.listening, true);
+    assert.equal(typeof signalHandlers.get('SIGTERM'), 'function');
+    assert.equal(typeof signalHandlers.get('SIGINT'), 'function');
+    const closed = new Promise(resolve => server.once('close', resolve));
+    signalHandlers.get('SIGTERM')();
+    signalHandlers.get('SIGINT')();
+    await closed;
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(calls.storeClosed, 1);
+    assert.equal(calls.poolClosed, 1);
+    assert.equal(processFixture.exitCode, 0);
+});
+
+test('runtime app: production refuses to listen when its database preflight fails', async t => {
+    await assert.rejects(harness(t, { start: true, databaseUnavailable: true }));
+});
+
+test('runtime app: production security is mounted before routes while native same-origin forms work', async t => {
+    const { url } = await harness(t);
+    const crossSite = await fetch(url + '/usuarios/test-write', {
+        method: 'POST', headers: { Origin: 'https://unrelated.example' }
+    });
+    assert.equal(crossSite.status, 403);
+    const sameSite = await fetch(url + '/usuarios/test-write', { method: 'POST', headers: { Origin: url } });
+    assert.equal(sameSite.status, 201);
+});
 
 test('runtime app: production uses the existing pool and migration-managed session table', async t => {
     const { calls } = await harness(t);

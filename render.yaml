@@ -2,7 +2,7 @@
 # Apenas preparar/commitar este arquivo NÃO publica e NÃO contrata nada.
 # Confirme o total apresentado pelo Render ANTES de aprovar a criação.
 # Leia DEPLOY.md, inclusive backup/importação e limitações da demonstração.
-# Planos/documentação conferidos em 2026-10-06: https://render.com/docs/blueprint-spec
+# Planos/documentação conferidos em 2026-10-09: https://render.com/docs/blueprint-spec
 
 services:
   - type: web
@@ -11,7 +11,7 @@ services:
     region: ohio
     plan: 0.5c-512mb
     numInstances: 1
-    autoDeployTrigger: off
+    autoDeployTrigger: "off"
     buildCommand: npm ci
     startCommand: npm run db:migrate && npm run serve
     healthCheckPath: /healthz

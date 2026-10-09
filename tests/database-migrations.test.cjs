@@ -130,6 +130,14 @@ test('migrations: schema inicial preserva tabelas existentes sem seed, reset ou 
     }
     assert.match(initial, /estoque NUMERIC\(12, 2\)/);
     assert.match(initial, /data_movimentacao TIMESTAMP WITHOUT TIME ZONE/);
+    for (const column of ['estoque', 'estoque_minimo', 'valor']) {
+        assert.match(initial, new RegExp(column + ' NUMERIC\\(12, 2\\) NOT NULL DEFAULT 0'));
+    }
+    for (const column of ['id_categoria', 'id_produto', 'id_usuario']) {
+        assert.match(initial, new RegExp(column + ' INTEGER NOT NULL REFERENCES public\\.'));
+    }
+    assert.match(initial, /CHECK \(tipo_movimentacao IN \('Entrada', 'Saída'\)\)/);
+    assert.match(initial, /data_movimentacao TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP/);
     assert.equal((initial.match(/ON DELETE RESTRICT/g) || []).length, 3);
     for (const file of files) assert.doesNotMatch(file.sql, /\b(?:TRUNCATE|DROP|DELETE FROM|CASCADE|INSERT INTO|UPDATE)\b/i);
 });
