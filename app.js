@@ -7,6 +7,8 @@ const PgSession = require('connect-pg-simple')(session);
 const { loadRuntimeConfig, prepareUploadStorage, checkUploadStorage } = require('./lib/runtime-config');
 const { createRequestSecurity } = require('./lib/request-security');
 const config = loadRuntimeConfig();
+const { storageConfig, publicImageUrl, checkCloudStorage } = require('./lib/cloud-images');
+const cloudStorage = storageConfig(process.env);
 const pool = require('./conexao');
 const rota_usuario = require('./routes/usuarios');
 const rota_categoria = require('./routes/categorias');
@@ -32,7 +34,15 @@ app.use((req, res, next) => {
 });
 
 // O disco persistente pode ficar fora de public; as URLs existentes não mudam.
-app.use('/uploads', express.static(config.uploadDir, { dotfiles: 'deny', index: false }));
+if (cloudStorage) {
+    app.get('/uploads/:folder/:filename', (req, res) => {
+        try {
+            res.redirect(302, publicImageUrl(cloudStorage, req.params.folder, req.params.filename));
+        } catch (_) { res.sendStatus(404); }
+    });
+} else {
+    app.use('/uploads', express.static(config.uploadDir, { dotfiles: 'deny', index: false }));
+}
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
@@ -41,7 +51,15 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.get('/healthz', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     try {
-        await Promise.all([pool.query('SELECT 1'), checkUploadStorage(config.uploadDir)]);
+        await Promise.all([pool.query(cloudStorage ? 'SELECT sid FROM public.user_sessions LIMIT 0' : 'SELECT 1').catch(error => {
+            const safeCodes = new Set(['28P01', '3D000', '42P01', '42501', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'CERT_HAS_EXPIRED']);
+            console.error('Health database:', safeCodes.has(error.code) ? error.code : 'unavailable');
+            throw new Error('Database unavailable');
+        }),
+            (cloudStorage ? checkCloudStorage(cloudStorage) : checkUploadStorage(config.uploadDir)).catch(() => {
+                console.error('Health image storage: unavailable');
+                throw new Error('Image storage unavailable');
+            })]);
         res.status(200).json({ status: 'ok' });
     } catch (_) {
         res.status(503).json({ status: 'unavailable' });
@@ -53,6 +71,7 @@ const sessionStore = config.production ? new PgSession({
     schemaName: 'public',
     tableName: 'user_sessions',
     createTableIfMissing: false,
+    pruneSessionInterval: process.env.VERCEL === '1' ? false : 900,
     errorLog: () => console.error('Não foi possível acessar o armazenamento de sessões.')
 }) : undefined;
 
@@ -66,6 +85,19 @@ app.use(session({
 }));
 
 app.use(createRequestSecurity(config));
+
+// Recheck account status even if an in-flight request restored a revoked session.
+app.use(async (req, res, next) => {
+    const id = req.session?.user?.id_usuario;
+    if (!id) return next();
+    try {
+        const account = await pool.query("SELECT id_usuario FROM usuarios WHERE id_usuario = $1 AND senha <> ''", [id]);
+        if (account.rows.length) return next();
+        return req.session.destroy(() => res.redirect('/usuarios/login'));
+    } catch (_) {
+        return res.status(503).send('Não foi possível verificar sua sessão. Tente novamente em instantes.');
+    }
+});
 
 app.use((req, res, next) => {
     res.locals.isLoggedIn = !!req.session.user;
@@ -105,7 +137,8 @@ app.use((err, req, res, next) => {
 });
 
 async function start() {
-    await prepareUploadStorage(config.uploadDir);
+    if (cloudStorage) await checkCloudStorage(cloudStorage);
+    else await prepareUploadStorage(config.uploadDir);
     if (config.production) {
         await pool.query('SELECT 1');
         // A migração deve ter sido aplicada antes de receber logins.
@@ -142,7 +175,7 @@ async function start() {
 module.exports = app;
 module.exports.start = start;
 
-if (require.main === module) {
+if (require.main === module && process.env.VERCEL !== '1') {
     start().catch(async () => {
         console.error('Falha ao iniciar: confira as variáveis de ambiente, as migrações e o diretório de uploads.');
         if (sessionStore) await sessionStore.close().catch(() => {});

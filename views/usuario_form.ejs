@@ -69,6 +69,9 @@
           <p>O acesso é feito com o <strong>usuário</strong> e a <strong>senha</strong>. O e-mail e o telefone ficam como dados de contato.</p>
           <p><%= editing ? 'Alterar os dados da conta não remove suas movimentações. Os registros continuam vinculados ao mesmo usuário.' : 'A nova conta poderá entrar após o cadastro. Nenhum convite ou e-mail é enviado automaticamente.' %></p>
           <p class="user-guide-note"><%= editing ? 'A senha atual nunca é exibida. Preencha uma nova senha apenas se quiser substituí-la.' : 'Cadastrar outra pessoa não encerra nem troca a sua sessão.' %></p>
+          <% if (editing && typeof user !== 'undefined' && user && String(user.id_usuario) === id) { %>
+            <section class="user-account-danger" aria-labelledby="account-danger-title"><h3 id="account-danger-title">Encerrar minha conta</h3><p>Remova seus dados pessoais e encerre seu acesso ao Madero.</p><a href="/usuarios/minha-conta/excluir">Excluir minha conta <span aria-hidden="true">↗</span></a></section>
+          <% } %>
         </aside>
       </div>
     <% } %>

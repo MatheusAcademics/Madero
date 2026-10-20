@@ -21,7 +21,8 @@
     const isRegisterPage = isLoginPage && typeof authPage !== 'undefined' && authPage === 'register';
     const isPublicExperience = isLandingPage || isCardapioPage || isAboutPage;
     const publicNavigationId = isLandingPage ? 'landing-navigation' : (isCardapioPage ? 'cardapio-navigation' : 'sobre-navigation');
-    const pageTitle = isUsersPage ? 'Usuários — Madero' : isUserFormPage ? (typeof isEditing !== 'undefined' && isEditing ? 'Editar usuário — Madero' : 'Novo usuário — Madero') : isProductEditPage ? 'Editar produto — Madero' : isCategoryEditPage ? 'Editar categoria — Madero' : isProductFormPage ? 'Novo produto — Madero' : isCategoriesPage ? 'Categorias — Madero' : isMovementsPage ? 'Movimentações — Madero' : isStockPage ? 'Estoque atual — Madero' : isMovementFormPage ? 'Nova movimentação — Madero' : isCategoryFormPage ? 'Nova categoria — Madero' : isLandingPage
+    const deletingAccount = typeof isDeletingAccount !== 'undefined' && isDeletingAccount;
+    const pageTitle = deletingAccount ? 'Excluir minha conta - Madero' : isUsersPage ? 'Usuários — Madero' : isUserFormPage ? (typeof isEditing !== 'undefined' && isEditing ? 'Editar usuário — Madero' : 'Novo usuário — Madero') : isProductEditPage ? 'Editar produto — Madero' : isCategoryEditPage ? 'Editar categoria — Madero' : isProductFormPage ? 'Novo produto — Madero' : isCategoriesPage ? 'Categorias — Madero' : isMovementsPage ? 'Movimentações — Madero' : isStockPage ? 'Estoque atual — Madero' : isMovementFormPage ? 'Nova movimentação — Madero' : isCategoryFormPage ? 'Nova categoria — Madero' : isLandingPage
         ? 'Madero — O hambúrguer faz o mundo melhor'
         : (isCardapioPage ? 'Cardápios — Madero' : (isAboutPage ? 'Nossa história — Madero' : (isLoginPage ? (isRegisterPage ? 'Criar conta — Madero' : 'Entrar — Madero') : (isProductsPage ? 'Produtos — Madero' : (isDashboardPage ? 'Visão geral — Madero' : 'MADERO')))));
 %>
@@ -95,7 +96,7 @@
         <% if (isProductsPage) { %><link rel="stylesheet" href="/css/products.css?v=list-1"><% } %>
         <% if (isProductFormPage || isProductEditPage || isUserFormPage) { %><link rel="stylesheet" href="/css/product-form.css?v=upload-3"><% } %>
         <% if (isUsersPage) { %><link rel="stylesheet" href="/css/users.css?v=list-1"><% } %>
-        <% if (isUserFormPage) { %><link rel="stylesheet" href="/css/user-form.css?v=form-1"><% } %>
+        <% if (isUserFormPage) { %><link rel="stylesheet" href="/css/user-form.css?v=form-2"><% } %>
         <% if (isCategoriesPage) { %><link rel="stylesheet" href="/css/categories.css?v=list-1"><% } %>
         <% if (isCategoryFormPage || isCategoryEditPage) { %><link rel="stylesheet" href="/css/category-form.css?v=forms-2"><% } %>
         <% if (isMovementFormPage) { %><link rel="stylesheet" href="/css/movement-form.css?v=create-1"><% } %>

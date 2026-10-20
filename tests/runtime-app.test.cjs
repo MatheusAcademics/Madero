@@ -53,6 +53,7 @@ async function harness(t, overrides = {}) {
         if (name.startsWith('./routes/')) return routes;
         if (name === './middleware/auth') return (req, res, next) => req.session.user ? next() : res.redirect('/usuarios/login');
         if (name === './lib/request-security') return require('../lib/request-security');
+        if (name === './lib/cloud-images') return require('../lib/cloud-images');
         return require(name);
     };
     const signalHandlers = new Map();
@@ -170,7 +171,8 @@ test('runtime app: images uploaded to the configured disk retain public URLs and
         const imageModule = { exports: {} };
         vm.runInNewContext(source, { module: imageModule, exports: imageModule.exports, Buffer,
             __dirname: path.join(__dirname, '..', 'lib'), require: name => name === './runtime-config'
-                ? { uploadDirectory: () => uploadDir } : require(name) });
+                ? { uploadDirectory: () => uploadDir }
+                : name === './cloud-images' ? require('../lib/cloud-images') : require(name) });
         const imageUrl = await imageModule.exports.store({ buffer });
         assert.ok(imageUrl.startsWith('/uploads/' + kind + '/'));
         await fs.access(path.join(uploadDir, kind, path.basename(imageUrl)));
