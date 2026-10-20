@@ -6,7 +6,7 @@ const { spawn } = require('node:child_process');
 const { createHash, randomUUID } = require('node:crypto');
 
 const ROOT_FILES = ['app.js', 'conexao.js', 'package.json', 'package-lock.json', 'render.yaml',
-    '.node-version', '.env.example', '.gitignore', 'DEPLOY.md'];
+    '.node-version', '.env.example', '.gitignore', 'DEPLOY.md', 'DEPLOY-VERCEL.md', 'vercel.json'];
 const SOURCE_DIRECTORIES = ['lib', 'middleware', 'routes', 'views', 'public', 'scripts', 'database', 'tests'];
 const EXCLUDED_DIRECTORIES = new Set(['uploads', 'node_modules', '.git', 'backups', 'artifacts', 'logs', 'tmp', '.tmp']);
 const SOURCE_EXTENSIONS = new Set(['.js', '.cjs', '.json', '.ejs', '.css', '.md', '.sql', '.test.cjs']);

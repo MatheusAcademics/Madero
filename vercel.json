@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
+  "regions": ["gru1"],
+  "functions": {
+    "app.js": {
+      "includeFiles": "views/**"
+    }
+  }
+}
