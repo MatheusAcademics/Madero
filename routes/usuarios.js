@@ -229,7 +229,7 @@ const currentWorkspaceUser = req => workspaceUserId(req.session?.user?.id_usuari
 router.get('/minha-conta/excluir', (req, res) => {
     if (!currentWorkspaceUser(req)) return res.redirect('/usuarios/login');
     res.setHeader('Cache-Control', 'no-store');
-    return res.render('excluir_conta', { mainClass: 'main-user-form', formError: '' });
+    return res.render('excluir_conta', { isDeletingAccount: true, mainClass: 'main-user-form', formError: '' });
 });
 
 router.post('/minha-conta/excluir', async (req, res) => {
@@ -242,7 +242,7 @@ router.post('/minha-conta/excluir', async (req, res) => {
     } catch (error) {
         const { AccountDeletionError } = require('../lib/delete-account');
         return res.status(error instanceof AccountDeletionError ? error.status : 503).render('excluir_conta', {
-            mainClass: 'main-user-form', formError: error instanceof AccountDeletionError ? error.message
+            isDeletingAccount: true, mainClass: 'main-user-form', formError: error instanceof AccountDeletionError ? error.message
                 : 'Não foi possível excluir sua conta. Tente novamente em instantes.'
         });
     }

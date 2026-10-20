@@ -4,10 +4,28 @@
 .user-password-wrap input { padding-right: 86px; }
 .user-password-toggle { position: absolute; top: 3px; right: 5px; min-width: 72px; min-height: 44px; padding: 8px; border: 0; background: transparent; color: var(--dash-muted); font-size: 12px !important; cursor: pointer; }
 .user-password-toggle:hover { color: var(--dash-gold); }
-.user-form-guide { padding-top: 8px; }
+.user-form-guide { padding: 24px; border: 1px solid var(--dash-line); border-radius: 6px; background: var(--dash-surface); }
 .user-form-guide h2 { margin-top: 20px; font-size: 17px; font-weight: 500; }
 .user-form-guide p { margin-top: 14px; color: var(--dash-muted); font-size: 13px; line-height: 1.85; }
 .user-form-guide strong { color: #d0cebf; font-weight: 500; }
 .user-form-guide .user-record-id { margin-top: 6px; font-size: 11px; }
 .user-guide-note { padding-top: 18px; border-top: 1px solid var(--dash-line); }
-@media (max-width: 959px) { .user-form-layout { grid-template-columns: minmax(0, 1fr); } .user-form-guide { padding: 0; } }
+.user-account-danger { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--dash-line); }
+.user-account-danger h3 { font-size: 14px; font-weight: 500; }
+.user-account-danger p { margin-top: 8px; font-size: 12px; line-height: 1.7; }
+.user-account-danger a { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; margin-top: 8px; color: #dfaaa0; font-size: 12px; }
+.user-account-danger a:hover { color: #ffd1c8; text-decoration: underline; text-underline-offset: 4px; }
+.account-delete-content > .product-create-heading, .account-delete-content > .product-create-breadcrumb { width: 100%; max-width: 720px; margin-left: auto; margin-right: auto; }
+.account-delete-card { width: 100%; max-width: 720px; margin: 0 auto 48px; border-radius: 8px; overflow: hidden; }
+.account-delete-card .product-create-section { padding: 32px; }
+.account-delete-card h2 { margin-bottom: 14px; font-size: 20px; font-weight: 500; line-height: 1.4; }
+.account-delete-card .product-create-section > p { margin-bottom: 28px; color: var(--dash-muted); font-size: 13px; line-height: 1.9; }
+.account-delete-badge { display: inline-flex; align-items: center; margin-bottom: 20px; padding: 6px 10px; border: 1px solid #654039; border-radius: 4px; color: #dfaaa0; background: #2b1e1b; font-size: 11px; }
+.account-delete-card .account-delete-check { display: flex; align-items: flex-start; gap: 12px; margin-top: 24px; padding: 16px; border: 1px solid var(--dash-line); border-radius: 5px; color: var(--dash-muted); cursor: pointer; font-size: 12px; line-height: 1.8; }
+.account-delete-card .account-delete-check input[type='checkbox'] { appearance: auto; display: block; flex: 0 0 18px; width: 18px; height: 18px; min-height: 0; margin: 2px 0 0; padding: 0; accent-color: #cf9a8d; cursor: pointer; }
+.account-delete-check:focus-within { outline: 2px solid var(--dash-gold); outline-offset: 3px; }
+.account-delete-card .product-create-actions { padding: 22px 32px; gap: 20px; }
+.account-delete-button { border: 1px solid #815349; background: #613b33; color: #fff1ed; }
+.account-delete-button:hover { background: #7c4b40; border-color: #a86d5e; }
+@media (max-width: 959px) { .user-form-layout { grid-template-columns: minmax(0, 1fr); } .user-form-guide { padding: 24px; } }
+@media (max-width: 599px) { .account-delete-card .product-create-section { padding: 24px 20px; } .account-delete-card .product-create-actions { padding: 20px; flex-direction: column-reverse; align-items: stretch; } .account-delete-card .product-create-actions > * { text-align: center; justify-content: center; } }

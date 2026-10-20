@@ -64,14 +64,14 @@
           <div class="product-create-actions"><a class="product-create-cancel" href="/usuarios/listar">Cancelar</a><button class="dash-button dash-button--gold" type="submit" data-user-submit><span data-user-submit-label><%= editing ? 'Salvar alterações' : 'Cadastrar usuário' %></span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button></div>
         </form>
         <aside class="user-form-guide" aria-labelledby="user-guide-title">
-          <% if (editing && typeof user !== 'undefined' && user && String(user.id_usuario) === id) { %>
-            <p><a class="dash-button dash-button--secondary" href="/usuarios/minha-conta/excluir">Excluir minha conta</a></p>
-          <% } %>
           <span class="product-create-panel-icon"><%- include('partials/dashboard-icon', { name: 'users' }) %></span><h2 id="user-guide-title"><%= editing ? 'Sobre esta conta' : 'Acesso ao estoque' %></h2>
           <% if (editing) { %><p class="user-record-id">Usuário ID <%= id %></p><% } %>
           <p>O acesso é feito com o <strong>usuário</strong> e a <strong>senha</strong>. O e-mail e o telefone ficam como dados de contato.</p>
           <p><%= editing ? 'Alterar os dados da conta não remove suas movimentações. Os registros continuam vinculados ao mesmo usuário.' : 'A nova conta poderá entrar após o cadastro. Nenhum convite ou e-mail é enviado automaticamente.' %></p>
           <p class="user-guide-note"><%= editing ? 'A senha atual nunca é exibida. Preencha uma nova senha apenas se quiser substituí-la.' : 'Cadastrar outra pessoa não encerra nem troca a sua sessão.' %></p>
+          <% if (editing && typeof user !== 'undefined' && user && String(user.id_usuario) === id) { %>
+            <section class="user-account-danger" aria-labelledby="account-danger-title"><h3 id="account-danger-title">Encerrar minha conta</h3><p>Remova seus dados pessoais e encerre seu acesso ao Madero.</p><a href="/usuarios/minha-conta/excluir">Excluir minha conta <span aria-hidden="true">↗</span></a></section>
+          <% } %>
         </aside>
       </div>
     <% } %>

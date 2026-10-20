@@ -1,22 +1,27 @@
 <div class="dash-shell" data-dashboard>
   <%- include('partials/stock-header', { activePage: '/usuarios/listar', username: user.usuario }) %>
-  <div class="dash-content product-create-content" id="user-content" tabindex="-1">
-    <header class="product-create-heading"><h1>Excluir minha conta</h1><p>Esta ação é permanente e encerra o acesso em todos os dispositivos.</p></header>
-    <form class="product-create-form" action="/usuarios/minha-conta/excluir" method="post">
+  <div class="dash-content product-create-content account-delete-content" id="user-content" tabindex="-1">
+    <nav class="product-create-breadcrumb" aria-label="Localização"><a href="/usuarios/alterar/<%= user.id_usuario %>"><%- include('partials/dashboard-icon', { name: 'left' }) %>Meu perfil</a><span aria-hidden="true">/</span><span aria-current="page">Excluir conta</span></nav>
+    <header class="product-create-heading"><h1>Excluir minha conta</h1><p>Antes de continuar, confira o que acontece com seus dados.</p></header>
+    <form class="product-create-form account-delete-card" action="/usuarios/minha-conta/excluir" method="post">
       <section class="product-create-section">
-        <h2>Confirme a exclusão</h2>
-        <p>Seu nome, usuário de acesso, e-mail, telefone, senha e avatar serão removidos. Se houver movimentações de estoque, o histórico será preservado como “Conta excluída”. Sem movimentações, o cadastro será apagado completamente.</p>
-        <p>Os IDs não são reiniciados nem reutilizados.</p>
+        <span class="account-delete-badge">Ação permanente</span>
+        <h2>Seu acesso será encerrado</h2>
+        <p>Você sairá de todos os dispositivos. Seu nome, contato, senha e foto de perfil serão apagados.</p>
+        <p>As movimentações de estoque serão preservadas como “Conta excluída”. Se não houver histórico, o cadastro será removido por completo.</p>
+      </section>
+      <section class="product-create-section">
+        <h2>Confirme que é você</h2>
         <% if (formError) { %><p class="product-create-field-error" role="alert"><%= formError %></p><% } %>
         <div class="product-create-field">
           <label for="senha_atual">Senha atual</label>
           <input id="senha_atual" name="senha_atual" type="password" autocomplete="current-password" required>
         </div>
-        <p><label><input type="checkbox" name="confirmacao" value="excluir" required> Entendo que a exclusão é permanente e quero excluir minha conta.</label></p>
+        <label class="account-delete-check"><input type="checkbox" name="confirmacao" value="excluir" required><span>Entendo que esta ação é permanente e quero excluir minha conta.</span></label>
       </section>
       <div class="product-create-actions">
-        <a class="product-create-cancel" href="/usuarios/alterar/<%= user.id_usuario %>">Cancelar</a>
-        <button class="dash-button dash-button--gold" type="submit">Excluir minha conta permanentemente</button>
+        <a class="product-create-cancel" href="/usuarios/alterar/<%= user.id_usuario %>">Manter minha conta</a>
+        <button class="dash-button account-delete-button" type="submit">Excluir minha conta</button>
       </div>
     </form>
   </div>
