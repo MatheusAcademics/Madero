@@ -51,8 +51,15 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.get('/healthz', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     try {
-        await Promise.all([pool.query(cloudStorage ? 'SELECT sid FROM public.user_sessions LIMIT 0' : 'SELECT 1'),
-            cloudStorage ? checkCloudStorage(cloudStorage) : checkUploadStorage(config.uploadDir)]);
+        await Promise.all([pool.query(cloudStorage ? 'SELECT sid FROM public.user_sessions LIMIT 0' : 'SELECT 1').catch(error => {
+            const safeCodes = new Set(['28P01', '3D000', '42P01', '42501', 'ECONNREFUSED', 'ETIMEDOUT', 'ENOTFOUND', 'SELF_SIGNED_CERT_IN_CHAIN', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'CERT_HAS_EXPIRED']);
+            console.error('Health database:', safeCodes.has(error.code) ? error.code : 'unavailable');
+            throw new Error('Database unavailable');
+        }),
+            (cloudStorage ? checkCloudStorage(cloudStorage) : checkUploadStorage(config.uploadDir)).catch(() => {
+                console.error('Health image storage: unavailable');
+                throw new Error('Image storage unavailable');
+            })]);
         res.status(200).json({ status: 'ok' });
     } catch (_) {
         res.status(503).json({ status: 'unavailable' });
