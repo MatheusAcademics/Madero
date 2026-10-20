@@ -280,7 +280,8 @@ test('user edit: blank or omitted passwords leave the stored hash untouched', as
     const res = await h.invoke('POST', '/alterar/:id_usuario', { body, session, params: { id_usuario: '2' } });
     assert.equal(res.location, '/usuarios/listar?aviso=alterado');
     assert.equal(h.calls.hashes.length, 0);
-    assert.doesNotMatch(h.calls.queries[0].sql, /\bsenha\b/);
+    assert.doesNotMatch(h.calls.queries[0].sql.split('WHERE')[0], /\bsenha\b/);
+    assert.match(h.calls.queries[0].sql, /AND senha <> ''/);
     assert.deepEqual(h.calls.queries[0].values, ['Ana Silva', 'ana', 'ana@example.com', null, 2]);
     assert.deepEqual(session.user, { id_usuario: 1, usuario: 'current' });
     assertNoSecrets(res, h);
@@ -293,7 +294,7 @@ test('user edit: password change requires matching confirmation and bcrypt hash 
   assert.equal(res.location, '/usuarios/listar?aviso=alterado');
   assert.deepEqual(h.calls.hashes, [[password, 10]]);
   assert.match(h.calls.queries[0].sql, /senha = \$5/);
-  assert.match(h.calls.queries[0].sql, /WHERE id_usuario = \$6 RETURNING/);
+  assert.match(h.calls.queries[0].sql, /WHERE id_usuario = \$6 AND senha <> '' RETURNING/);
   assert.deepEqual(h.calls.queries[0].values.slice(-2), ['mock-user-hash', 2]);
   assertNoSecrets(res, h);
   for (const body of [{ ...editBody, senha: password }, { ...editBody, confirmar_senha: password }, { ...editBody, senha: [] }]) {

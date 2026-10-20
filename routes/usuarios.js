@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
         const resultado = await bd.query('SELECT * FROM usuarios WHERE usuario = $1', [usuario]);
         const usuarioSel = resultado.rows[0];
 
-        if (!usuarioSel || !bcrypt.compareSync(senha, usuarioSel.senha)) {
+        if (!usuarioSel || !usuarioSel.senha || !bcrypt.compareSync(senha, usuarioSel.senha)) {
             return renderLogin(res, 401, {
                 mensagem_erro: 'Usuário ou senha inválidos.',
                 usuario_digitado: usuarioDigitado
@@ -225,6 +225,35 @@ const workspaceUserId = value => {
     return Number.isSafeInteger(id) && id > 0 && id <= 2147483647 ? String(id) : '';
 };
 const currentWorkspaceUser = req => workspaceUserId(req.session?.user?.id_usuario);
+
+router.get('/minha-conta/excluir', (req, res) => {
+    if (!currentWorkspaceUser(req)) return res.redirect('/usuarios/login');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.render('excluir_conta', { mainClass: 'main-user-form', formError: '' });
+});
+
+router.post('/minha-conta/excluir', async (req, res) => {
+    const id = currentWorkspaceUser(req);
+    if (!id) return res.redirect('/usuarios/login');
+    res.setHeader('Cache-Control', 'no-store');
+    try {
+        await require('../lib/delete-account').deleteAccount(bd, Number(id), req.body?.senha_atual,
+            req.body?.confirmacao, photo => require('../lib/user-images').remove(photo));
+    } catch (error) {
+        const { AccountDeletionError } = require('../lib/delete-account');
+        return res.status(error instanceof AccountDeletionError ? error.status : 503).render('excluir_conta', {
+            mainClass: 'main-user-form', formError: error instanceof AccountDeletionError ? error.message
+                : 'Não foi possível excluir sua conta. Tente novamente em instantes.'
+        });
+    }
+    // Invalidate the current in-memory session too; the transaction revoked all stored sessions.
+    return req.session.destroy(error => {
+        if (error) return res.status(503).send('Conta excluída. Feche esta janela e entre novamente se necessário.');
+        const config = require('../lib/runtime-config').loadRuntimeConfig();
+        res.clearCookie(config.sessionName, { path: '/', httpOnly: true, sameSite: 'lax', secure: config.production });
+        return res.redirect('/usuarios/login?mensagem=' + encodeURIComponent('Sua conta foi excluída.'));
+    });
+});
 const safeUserColumns = 'id_usuario, nome, usuario, email, telefone, foto';
 const safeUserValues = body => Object.fromEntries(['nome', 'usuario', 'email', 'telefone'].map(key => [key, workspaceUserText(body?.[key])]));
 const userNotices = Object.freeze({
@@ -425,7 +454,7 @@ router.post('/alterar/:id_usuario', async (req, res) => {
         }
         parameters.push(Number(recordId));
         const result = await bd.query(`UPDATE usuarios SET nome = $1, usuario = $2, email = $3, telefone = $4${passwordClause}${photoClause}
-            WHERE id_usuario = $${parameters.length} RETURNING ${safeUserColumns}`, parameters);
+            WHERE id_usuario = $${parameters.length} AND senha <> '' RETURNING ${safeUserColumns}`, parameters);
         if (!result.rows.length) return renderWorkspaceUser(res, 404, true, recordId, { values, notFound: true, submitted: true });
         if (currentUserId === recordId) {
             req.session.user.usuario = result.rows[0].usuario;

@@ -86,6 +86,19 @@ app.use(session({
 
 app.use(createRequestSecurity(config));
 
+// Recheck account status even if an in-flight request restored a revoked session.
+app.use(async (req, res, next) => {
+    const id = req.session?.user?.id_usuario;
+    if (!id) return next();
+    try {
+        const account = await pool.query("SELECT id_usuario FROM usuarios WHERE id_usuario = $1 AND senha <> ''", [id]);
+        if (account.rows.length) return next();
+        return req.session.destroy(() => res.redirect('/usuarios/login'));
+    } catch (_) {
+        return res.status(503).send('Não foi possível verificar sua sessão. Tente novamente em instantes.');
+    }
+});
+
 app.use((req, res, next) => {
     res.locals.isLoggedIn = !!req.session.user;
     res.locals.user = req.session.user || null;

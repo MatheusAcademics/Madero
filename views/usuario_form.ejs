@@ -64,6 +64,9 @@
           <div class="product-create-actions"><a class="product-create-cancel" href="/usuarios/listar">Cancelar</a><button class="dash-button dash-button--gold" type="submit" data-user-submit><span data-user-submit-label><%= editing ? 'Salvar alterações' : 'Cadastrar usuário' %></span><%- include('partials/dashboard-icon', { name: 'arrow' }) %></button></div>
         </form>
         <aside class="user-form-guide" aria-labelledby="user-guide-title">
+          <% if (editing && typeof user !== 'undefined' && user && String(user.id_usuario) === id) { %>
+            <p><a class="dash-button dash-button--secondary" href="/usuarios/minha-conta/excluir">Excluir minha conta</a></p>
+          <% } %>
           <span class="product-create-panel-icon"><%- include('partials/dashboard-icon', { name: 'users' }) %></span><h2 id="user-guide-title"><%= editing ? 'Sobre esta conta' : 'Acesso ao estoque' %></h2>
           <% if (editing) { %><p class="user-record-id">Usuário ID <%= id %></p><% } %>
           <p>O acesso é feito com o <strong>usuário</strong> e a <strong>senha</strong>. O e-mail e o telefone ficam como dados de contato.</p>

@@ -1,0 +1,23 @@
+<div class="dash-shell" data-dashboard>
+  <%- include('partials/stock-header', { activePage: '/usuarios/listar', username: user.usuario }) %>
+  <div class="dash-content product-create-content" id="user-content" tabindex="-1">
+    <header class="product-create-heading"><h1>Excluir minha conta</h1><p>Esta ação é permanente e encerra o acesso em todos os dispositivos.</p></header>
+    <form class="product-create-form" action="/usuarios/minha-conta/excluir" method="post">
+      <section class="product-create-section">
+        <h2>Confirme a exclusão</h2>
+        <p>Seu nome, usuário de acesso, e-mail, telefone, senha e avatar serão removidos. Se houver movimentações de estoque, o histórico será preservado como “Conta excluída”. Sem movimentações, o cadastro será apagado completamente.</p>
+        <p>Os IDs não são reiniciados nem reutilizados.</p>
+        <% if (formError) { %><p class="product-create-field-error" role="alert"><%= formError %></p><% } %>
+        <div class="product-create-field">
+          <label for="senha_atual">Senha atual</label>
+          <input id="senha_atual" name="senha_atual" type="password" autocomplete="current-password" required>
+        </div>
+        <p><label><input type="checkbox" name="confirmacao" value="excluir" required> Entendo que a exclusão é permanente e quero excluir minha conta.</label></p>
+      </section>
+      <div class="product-create-actions">
+        <a class="product-create-cancel" href="/usuarios/alterar/<%= user.id_usuario %>">Cancelar</a>
+        <button class="dash-button dash-button--gold" type="submit">Excluir minha conta permanentemente</button>
+      </div>
+    </form>
+  </div>
+</div>
